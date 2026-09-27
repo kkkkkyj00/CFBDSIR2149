@@ -1,0 +1,2468 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>临界角</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body.day {
+    --bg-page: #ece5d8; --bg-card: #faf6ee; --bg-choice: #f2ece0; --bg-choice-hover: #eae2d2;
+    --border-soft: #e4dbcc; --border-choice: #e0d6c4; --border-choice-hover: #c8b89e;
+    --text-main: #3a342c; --text-muted: #a09482; --text-title: #6b5d4a; --text-accent: #8a6f47;
+    --shadow: 0 2px 12px rgba(60,50,30,0.10); --shadow-lg: 0 4px 24px rgba(60,50,30,0.14);
+    --progress-bg: #e4dbcc; --progress-fill: #b8a07a;
+    --snow-color: rgba(180,160,120,0.45); --title-deco: rgba(138,111,71,0.35);
+  }
+  body.night {
+    --bg-page: #1a1713; --bg-card: #24201a; --bg-choice: #2c2820; --bg-choice-hover: #383228;
+    --border-soft: #383228; --border-choice: #3a342a; --border-choice-hover: #5a5040;
+    --text-main: #d6cec0; --text-muted: #7a7060; --text-title: #c8b89a; --text-accent: #d4a870;
+    --shadow: 0 2px 14px rgba(0,0,0,0.45); --shadow-lg: 0 4px 24px rgba(0,0,0,0.6);
+    --progress-bg: #383228; --progress-fill: #b08a58;
+    --snow-color: rgba(200,180,140,0.40); --title-deco: rgba(212,168,112,0.35);
+  }
+
+  html, body {
+    background: var(--bg-page);
+    font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+    color: var(--text-main); min-height: 100vh;
+    transition: background 0.5 ease, color 0.5 ease;
+  }
+  body { display: flex; justify-content: center; align-items: flex-start; padding: 24px 16px 48px; position: relative; overflow-x: hidden; }
+
+  #snow-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; overflow: hidden; }
+  .snowflake {
+    position: absolute;
+    top: -30px;
+    color: var(--snow-color);
+    pointer-events: none;
+    user-select: none;
+    font-family: Georgia, "Times New Roman", serif;
+    line-height: 1;
+    animation: snowformula linear infinite;
+    font-style: italic;
+  }
+  @keyframes snowformula {
+    0% { transform: translateY(0) translateX(0) rotate(0deg); opacity: 0; }
+    10% { opacity: 0.9; }
+    90% { opacity: 0.9; }
+    100% { transform: translateY(105vh) translateX(50px) rotate(30deg); opacity: 0; }
+  }
+
+  #chapter-transition {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: var(--bg-page);
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.7s ease;
+  }
+  #chapter-transition.show { opacity: 1; pointer-events: auto; }
+  #chapter-transition .text {
+    font-size: 26px;
+    letter-spacing: 8px;
+    color: var(--text-title);
+    font-family: Georgia, "Songti SC", "STSong", serif;
+    text-indent: 8px;
+    opacity: 0.85;
+  }
+
+  #app { width: 100%; max-width: 640px; position: relative; z-index: 2; }
+  .screen { display: none; width: 100%; animation: fadeIn 0.5s ease; }
+  .screen.active { display: block; }
+
+  .theme-toggle-global {
+    position: absolute; top: 16px; right: 16px; z-index: 5;
+    font-size: 12px; color: var(--text-muted); background: var(--bg-choice);
+    border: 1px solid var(--border-choice); border-radius: 14px; padding: 4px 12px;
+    cursor: pointer; font-family: inherit; line-height: 1.4; transition: all 0.3s;
+  }
+  .theme-toggle-global:hover { background: var(--bg-choice-hover); border-color: var(--border-choice-hover); color: var(--text-title); }
+
+  #screen-menu { text-align: center; }
+  .menu-card { background: var(--bg-card); border-radius: 14px; box-shadow: var(--shadow-lg); padding: 60px 44px 44px; position: relative; overflow: hidden; }
+  .menu-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(to right, transparent, var(--text-accent), transparent); opacity: 0.6; }
+  .menu-title { font-family: Georgia, "Songti SC", "STSong", serif; font-size: 42px; letter-spacing: 14px; color: var(--text-title); margin-bottom: 8px; text-indent: 14px; font-weight: 600; position: relative; display: inline-block; }
+  .menu-title::before, .menu-title::after { content: "·"; position: absolute; top: 50%; transform: translateY(-50%); color: var(--title-deco); font-size: 24px; }
+  .menu-title::before { left: -28px; } .menu-title::after { right: -28px; }
+  .menu-subtitle { font-size: 12px; color: var(--text-muted); letter-spacing: 3px; margin-bottom: 8px; text-transform: uppercase; }
+  .menu-quote { font-size: 13px; color: var(--text-muted); font-style: italic; margin-bottom: 40px; line-height: 1.8; opacity: 0.9; }
+  .menu-divider { width: 40px; height: 1px; background: var(--border-choice); margin: 0 auto 36px; }
+  .menu-btn { display: block; width: 100%; padding: 15px 20px; margin-bottom: 11px; font-size: 15px; font-family: inherit; color: var(--text-main); background: var(--bg-choice); border: 1px solid var(--border-choice); border-radius: 10px; cursor: pointer; transition: all 0.2s; letter-spacing: 2px; position: relative; z-index: 2; }
+  .menu-btn:hover:not(:disabled) { background: var(--bg-choice-hover); border-color: var(--border-choice-hover); transform: translateY(-1px); box-shadow: 0 3px 10px rgba(60,50,30,0.10); }
+  .menu-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .menu-btn .badge { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); font-size: 12px; color: var(--text-muted); letter-spacing: 0; }
+  .menu-footer { margin-top: 32px; font-size: 11px; color: var(--text-muted); letter-spacing: 1px; opacity: 0.7; position: relative; z-index: 2; }
+
+  .menu-symbol {
+    position: absolute;
+    color: var(--title-deco);
+    font-family: Georgia, serif;
+    pointer-events: none;
+    user-select: none;
+    opacity: 0;
+    z-index: 1;
+    font-style: italic;
+    animation: floatSymbol linear infinite;
+  }
+  @keyframes floatSymbol {
+    0% { transform: translateY(20px) rotate(0deg); opacity: 0; }
+    20% { opacity: 0.18; }
+    80% { opacity: 0.18; }
+    100% { transform: translateY(-50px) rotate(18deg); opacity: 0; }
+  }
+
+  #screen-game .game-card { background: var(--bg-card); border-radius: 12px; box-shadow: var(--shadow); padding: 26px 28px 24px; position: relative; overflow: hidden; }
+
+  #season-band {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    border-radius: 12px 12px 0 0;
+    transition: background 1 ease;
+    pointer-events: none;
+    z-index: 3;
+  }
+  .season-winter { background: linear-gradient(to right, #b8d4e8, #e0e8f0, #b8d4e8); }
+  .season-spring { background: linear-gradient(to right, #f0c8d8, #f8e0e8, #f0c8d8); }
+  .season-summer { background: linear-gradient(to right, #a8d8b8, #d8e8c8, #a8d8b8); }
+  .season-autumn { background: linear-gradient(to right, #e0b888, #f0d8b8, #e0b888); }
+  body.night .season-winter { background: linear-gradient(to right, #4a5a6a, #6a7a8a, #4a5a6a); }
+  body.night .season-spring { background: linear-gradient(to right, #6a4a5a, #8a6a7a, #6a4a5a); }
+  body.night .season-summer { background: linear-gradient(to right, #4a6a5a, #6a8a7a, #4a6a5a); }
+  body.night .season-autumn { background: linear-gradient(to right, #6a5a4a, #8a7a5a, #6a5a4a); }
+
+  .game-topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; position: relative; z-index: 2; }
+  .home-btn { font-size: 12px; color: var(--text-muted); background: transparent; border: none; cursor: pointer; font-family: inherit; padding: 4px 0; transition: color 0.2; }
+  .home-btn:hover { color: var(--text-title); }
+  .progress-bar { width: 100%; height: 3px; background: var(--progress-bg); border-radius: 2px; margin-bottom: 16px; overflow: hidden; position: relative; z-index: 2; }
+  .progress-fill { height: 100%; background: var(--progress-fill); transition: width 0.5 ease; border-radius: 2px; }
+
+  #status-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 12px; color: var(--text-muted); margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border-soft); position: relative; z-index: 2; }
+  #chapter-label { font-weight: 600; color: var(--text-muted); }
+  #stats { display: flex; gap: 10px; flex-wrap: wrap; }
+  #stats span { white-space: nowrap; }
+
+  #scene-title { font-size: 17px; font-weight: 700; color: var(--text-title); margin-bottom: 14px; letter-spacing: 1px; position: relative; padding-left: 12px; }
+  #scene-title::before { content: ""; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 3px; height: 14px; background: var(--text-accent); border-radius: 2px; opacity: 0.7; }
+
+  #scene-text { font-size: 15px; line-height: 2.05; white-space: pre-wrap; margin-bottom: 24px; color: var(--text-main); cursor: pointer; min-height: 60px; }
+
+  #choices { display: flex; flex-direction: column; gap: 10px; }
+  .choice-btn {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 13px 18px;
+    font-size: 14.5px;
+    font-family: inherit;
+    color: var(--text-main);
+    background: var(--bg-choice);
+    border: 1px solid var(--border-choice);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.25 cubic-bezier(0.25, 0.8, 0.25, 1);
+    line-height: 1.6;
+    position: relative;
+    overflow: hidden;
+  }
+  .choice-btn::after {
+    content: "";
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.10), transparent);
+    transition: left 0.6 ease;
+    pointer-events: none;
+  }
+  .choice-btn:hover {
+    background: var(--bg-choice-hover);
+    border-color: var(--border-choice-hover);
+    padding-left: 24px;
+    transform: translateX(2px);
+  }
+  .choice-btn:hover::before { content: "▸"; position: absolute; left: 10px; color: var(--text-accent); }
+  .choice-btn:hover::after { left: 100%; }
+  .choice-btn:active { transform: translateX(2px) scale(0.985); }
+  .choice-btn.continue-btn { text-align: center; color: var(--text-muted); font-size: 13.5px; letter-spacing: 3px; }
+  .choice-btn.continue-btn:hover { padding-left: 18px; transform: translateY(-1px); }
+  .choice-btn.continue-btn:hover::before { display: none; }
+
+  .panel-card { background: var(--bg-card); border-radius: 12px; box-shadow: var(--shadow); padding: 40px 28px 28px; position: relative; }
+  .panel-title { font-size: 20px; font-weight: 700; color: var(--text-title); margin-bottom: 6px; letter-spacing: 3px; text-align: center; }
+  .panel-sub { font-size: 12px; color: var(--text-muted); text-align: center; margin-bottom: 26px; }
+  .ending-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; margin-bottom: 9px; background: var(--bg-choice); border: 1px solid var(--border-choice); border-radius: 8px; font-size: 14px; transition: all 0.2s; }
+  .ending-item.unlocked:hover { border-color: var(--border-choice-hover); transform: translateX(2px); }
+  .ending-item.locked { opacity: 0.5; }
+  .ending-item .name { color: var(--text-main); letter-spacing: 1px; }
+  .ending-item .name .icon { color: var(--text-accent); margin-right: 8px; font-size: 13px; }
+  .ending-item.locked .name { color: var(--text-muted); letter-spacing: 3px; }
+  .ending-item .status { font-size: 11px; color: var(--text-muted); }
+  .ending-item.unlocked .status { color: var(--text-accent); }
+  .panel-back { display: block; margin: 22px auto 0; padding: 10px 32px; font-size: 13px; font-family: inherit; color: var(--text-muted); background: transparent; border: 1px solid var(--border-choice); border-radius: 20px; cursor: pointer; letter-spacing: 2px; transition: all 0.2s; }
+  .panel-back:hover { background: var(--bg-choice); border-color: var(--border-choice-hover); }
+
+  .about-text { font-size: 14px; line-height: 2; color: var(--text-main); white-space: pre-wrap; margin-bottom: 20px; }
+  .about-text .accent { color: var(--text-accent); }
+
+  .guide-section { margin-bottom: 22px; }
+  .guide-section h3 { font-size: 14px; font-weight: 700; color: var(--text-title); margin-bottom: 10px; letter-spacing: 1px; padding-left: 10px; border-left: 3px solid var(--text-accent); }
+  .guide-section p { font-size: 13px; line-height: 1.9; color: var(--text-main); margin-bottom: 6px; }
+  .guide-section .hl { color: var(--text-accent); font-weight: 600; }
+  .guide-section ul { list-style: none; padding-left: 4px; }
+  .guide-section li { font-size: 13px; line-height: 1.9; color: var(--text-main); padding-left: 14px; position: relative; }
+  .guide-section li::before { content: "·"; position: absolute; left: 4px; color: var(--text-accent); font-weight: bold; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  .fade-in { animation: fadeIn 0.4s ease; }
+
+  @media (max-width: 480px) {
+    .menu-card { padding: 52px 26px 32px; }
+    .menu-title { font-size: 32px; letter-spacing: 8px; text-indent: 8px; }
+    .menu-title::before, .menu-title::after { display: none; }
+    #status-bar { flex-direction: column; align-items: flex-start; }
+    #stats { font-size: 11px; }
+    #chapter-transition .text { font-size: 20px; letter-spacing: 6px; }
+  }
+</style>
+</head>
+<body class="day">
+<div id="snow-container"></div>
+<div id="chapter-transition"><div class="text"></div></div>
+<div id="app">
+
+  <div id="screen-menu" class="screen active">
+    <div class="menu-card">
+      <button class="theme-toggle-global" type="button">☾ 夜</button>
+      <div class="menu-title">临界角</div>
+      <div class="menu-subtitle">Critical Angle</div>
+      <div class="menu-divider"></div>
+      <div class="menu-quote">“再靠近一点，就过了临界角。”</div>
+      <button class="menu-btn" id="btn-new" type="button">开始新游戏</button>
+      <button class="menu-btn" id="btn-continue" type="button">继续游戏</button>
+      <button class="menu-btn" id="btn-endings" type="button">结局收集 <span class="badge" id="badge-endings"></span></button>
+      <button class="menu-btn" id="btn-guide" type="button">攻略</button>
+      <button class="menu-btn" id="btn-about" type="button">关于</button>
+      <div class="menu-footer">一个关于三年夏天的故事</div>
+    </div>
+  </div>
+
+  <div id="screen-game" class="screen">
+    <div class="game-card">
+      <div id="season-band" class="season-autumn"></div>
+      <div class="game-topbar">
+        <button class="home-btn" id="btn-home" type="button">← 主菜单</button>
+        <button class="theme-toggle-global" type="button" style="position:static;">☾ 夜</button>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+      <div id="status-bar">
+        <span id="chapter-label"></span>
+        <div id="stats">
+          <span id="s-favor"></span>
+          <span id="s-trust"></span>
+          <span id="s-study"></span>
+          <span id="s-stress"></span>
+        </div>
+      </div>
+      <div id="scene-title"></div>
+      <div id="scene-text"></div>
+      <div id="choices"></div>
+    </div>
+  </div>
+
+  <div id="screen-endings" class="screen">
+    <div class="panel-card">
+      <button class="theme-toggle-global" type="button">☾ 夜</button>
+      <div class="panel-title">结局收集</div>
+      <div class="panel-sub" id="endings-progress"></div>
+      <div id="endings-list"></div>
+      <button class="panel-back" id="btn-endings-back" type="button">返回</button>
+    </div>
+  </div>
+
+  <div id="screen-guide" class="screen">
+    <div class="panel-card">
+      <button class="theme-toggle-global" type="button">☾ 夜</button>
+      <div class="panel-title">攻略</div>
+      <div class="panel-sub">简洁版</div>
+      <div class="guide-section">
+        <h3>数值</h3>
+        <p>心动：影响暧昧事件与结局</p>
+        <p>信赖：影响韩磊是否愿意敞开</p>
+        <p>学业：影响高考走向</p>
+        <p>压力：过高触发坏结局</p>
+      </div>
+      <div class="guide-section">
+        <h3>结局条件</h3>
+        <ul>
+          <li><span class="hl">HE 同频共振</span>：心动≥60 信赖≥50 学业≥35，毕业选表白/约定</li>
+          <li><span class="hl">NE 良师益友</span>：心动≥45 信赖≥35 学业≥30</li>
+          <li><span class="hl">BE 失焦</span>：心动&lt;30 或 信赖&lt;30</li>
+          <li><span class="hl">偏折光</span>：心动≥90 学业&lt;30</li>
+          <li><span class="hl">隐藏 薛定谔的猫</span>：曾通关 HE，且心动≥80 信赖≥50 学业≥40，毕业选表白</li>
+          <li><span class="hl">临界崩溃</span>：压力≥55 且未触发夜谈</li>
+        </ul>
+      </div>
+      <div class="guide-section">
+        <h3>关键提示</h3>
+        <ul>
+          <li>压力≥50 时，第三章期中选择"坦白压力大"触发夜谈</li>
+          <li>运动会受伤选择"接受帮助"，后续有独立剧情</li>
+          <li>物理竞赛选"踌躇"会触发短信分支</li>
+          <li>第三章办公室选"有点可爱"加成最高</li>
+          <li>第四章面对陈怀敛，拒绝可保留心动</li>
+          <li>毕业照选"站旁边"后再"单独合影"，加成最高</li>
+          <li>隐藏结局需要先通关一次 HE，再开新档重玩</li>
+          <li>不要一路只刷心动，学业和压力也要顾</li>
+        </ul>
+      </div>
+      <button class="panel-back" id="btn-guide-back" type="button">返回</button>
+    </div>
+  </div>
+
+  <div id="screen-about" class="screen">
+    <div class="panel-card">
+      <button class="theme-toggle-global" type="button">☾ 夜</button>
+      <div class="panel-title">关于</div>
+      <div class="panel-sub">Critical Angle</div>
+      <div class="about-text">《临界角》是一个单文件 HTML 的视觉小说。
+
+故事发生在高中三年。你是高一（14）班的学生，班主任是物理老师韩磊。
+
+三年里，你会和他一起经历很多小事——他讲课时的口头禅，他瓶子里的白开水，他眯着眼睛看人的样子。
+
+你可以慢慢靠近，也可以保持距离。
+
+你可以只顾学业，也可以只顾心动。
+
+但请记得，照顾好自己。
+
+<span class="accent">—— 有些答案，要等盒子打开才知道。</span></div>
+      <button class="panel-back" id="btn-about-back" type="button">返回</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+"use strict";
+
+var storage = {
+  get: function(k) { try { return window.localStorage.getItem(k); } catch (e) { return null; } },
+  set: function(k, v) { try { window.localStorage.setItem(k, v); } catch (e) {} },
+  del: function(k) { try { window.localStorage.removeItem(k); } catch (e) {} }
+};
+
+var SAVE_KEY = "ca_save_v8";
+var ENDINGS_KEY = "ca_endings_v8";
+var THEME_KEY = "ca_theme_v1";
+
+var state = { favor: 0, trust: 0, study: 0, stress: 0, flags: {}, scene: "start", playthrough: 0 };
+
+function resetState() {
+  state.favor = 0; state.trust = 0; state.study = 0; state.stress = 0;
+  state.flags = {}; state.scene = "start";
+}
+
+function clamp(v, min, max) { if (v < min) return min; if (v > max) return max; return v; }
+
+function applyEffects(effects) {
+  if (!effects) return;
+  if (effects.favor) state.favor = clamp(state.favor + effects.favor, 0, 100);
+  if (effects.trust) state.trust = clamp(state.trust + effects.trust, 0, 100);
+  if (effects.study) state.study = clamp(state.study + effects.study, 0, 80);
+  if (effects.stress) state.stress = clamp(state.stress + effects.stress, 0, 100);
+  if (effects.flag) state.flags[effects.flag] = true;
+}
+
+function saveGame() { try { storage.set(SAVE_KEY, JSON.stringify(state)); } catch (e) {} }
+function loadGame() {
+  var data = storage.get(SAVE_KEY);
+  if (!data) return false;
+  try { var obj = JSON.parse(data); if (!obj || !obj.scene) return false; state = obj; return true; }
+  catch (e) { return false; }
+}
+function hasSave() { return !!storage.get(SAVE_KEY); }
+function clearSave() { storage.del(SAVE_KEY); }
+
+var ENDING_DEFS = [
+  { id: "ending_he",        name: "同频共振", icon: "✦" },
+  { id: "ending_ne",        name: "良师益友", icon: "✧" },
+  { id: "ending_be",        name: "失焦",     icon: "·" },
+  { id: "ending_deflect",   name: "偏折光",   icon: "◐" },
+  { id: "ending_hidden",    name: "薛定谔的猫", icon: "★" },
+  { id: "ending_breakdown", name: "临界崩溃", icon: "×" }
+];
+
+function getUnlockedEndings() {
+  var data = storage.get(ENDINGS_KEY);
+  if (!data) return {};
+  try { return JSON.parse(data) || {}; } catch (e) { return {}; }
+}
+function unlockEnding(id) {
+  var obj = getUnlockedEndings();
+  obj[id] = true;
+  storage.set(ENDINGS_KEY, JSON.stringify(obj));
+}
+function countUnlocked() {
+  var obj = getUnlockedEndings(), n = 0;
+  ENDING_DEFS.forEach(function(e) { if (obj[e.id]) n++; });
+  return n;
+}
+
+function showScreen(name) {
+  var screens = document.querySelectorAll(".screen");
+  for (var i = 0; i < screens.length; i++) screens[i].classList.remove("active");
+  var el = document.getElementById("screen-" + name);
+  if (el) el.classList.add("active");
+}
+
+function getProgress(sceneId) {
+  if (!sceneId) return 0;
+  if (sceneId.indexOf("ending_") === 0 || sceneId.indexOf("epilogue_") === 0) return 100;
+  if (sceneId.indexOf("c4_") === 0 || sceneId.indexOf("fb_c4_") === 0) return 82;
+  if (sceneId.indexOf("c3_") === 0 || sceneId.indexOf("fb_c3_") === 0) return 60;
+  if (sceneId.indexOf("c2_") === 0 || sceneId.indexOf("fb_c2_") === 0) return 38;
+  if (sceneId.indexOf("c1_") === 0 || sceneId.indexOf("fb_c1_") === 0) return 20;
+  return 6;
+}
+
+function getSeason(chapter) {
+  if (!chapter) return "season-winter";
+  if (chapter.indexOf("序章") === 0 || chapter.indexOf("第一章") === 0) return "season-autumn";
+  if (chapter.indexOf("第二章") === 0) return "season-spring";
+  if (chapter.indexOf("第三章") === 0) return "season-winter";
+  if (chapter.indexOf("第四章") === 0) return "season-summer";
+  return "season-winter";
+}
+
+function fb(chapter, title, text, next) {
+  return {
+    chapter: chapter, title: title,
+    text: function() { return text; },
+    choices: [{ text: "继续", next: next, isContinue: true }]
+  };
+}
+
+var scenes = {
+
+// ==================== 序章 ====================
+start: {
+  chapter: "序章", title: "开学第一天",
+  text: function() {
+    return "九月。蝉鸣还没消，走廊里全是新学期的味道——新课本的油墨、拖把刚拖过地面的潮气、还有某间教室飘出来的粉笔灰。\n\n"
+      + "你拎着书包跑上三楼，高一（14）班的门牌在日光灯下反着光。\n\n"
+      + "你迟到了三分钟。\n\n"
+      + "教室里很安静。一个穿白衬衫的男人背对着你，在黑板上写公式。他的字很好看，横平竖直，像印上去的。\n\n"
+      + "他转身，眯起眼睛看你——他没戴眼镜，看人时总像在努力聚焦。\n\n"
+      + "“新同学？”他声音不高，“进来。下次别迟到。”\n\n"
+      + "你走到唯一的空位坐下。同桌是个看起来很好相处的人，冲你点了点头。\n\n"
+      + "讲台上放着一瓶三得利乌龙茶。透明的瓶身里，液体是清的——不是茶色。\n\n"
+      + "他拿起瓶子喝了一口。\n\n"
+      + "同桌凑过来，用气声说：“他每次都这样。茶瓶子装水，假装自己在喝茶。”\n\n"
+      + "你没忍住，笑出了声。\n\n"
+      + "韩磊继续讲课。他在黑板上画完一个受力分析图，回头眯起眼睛。\n\n"
+      + "“这个斜面分解，是不是更直观？”\n\n"
+      + "他笑了一下。";
+  },
+  choices: [
+    { text: "课后认真道歉", next: "fb_start_apologize", effects: { trust: 4 } },
+    { text: "随便找个借口", next: "fb_start_excuse", effects: { favor: -1, stress: 3 } },
+    { text: "沉默点头", next: "fb_start_silent", effects: { favor: 1, trust: 3 } }
+  ]
+},
+
+fb_start_apologize: fb("序章", "开学第一天",
+  "下课后，你走到讲台边，低头说了句对不起。\n\n"
+  + "韩磊正在收拾教案，闻言看了你一眼。他眯起眼睛，像是在辨认你说的是真话还是客套。\n\n"
+  + "“坐吧。”他说。没再多说。\n\n"
+  + "你回到座位，心里那块石头落了一半。同桌小声笑：“你紧张什么，他又不吃人。”",
+  "c1_physics"),
+
+fb_start_excuse: fb("序章", "开学第一天",
+  "你随口找了个理由，说是公交车堵了。\n\n"
+  + "韩磊没有拆穿，只是眯着眼看了你一会儿。那种眼神很平静，但让你有点不自在。\n\n"
+  + "“下次早点出门。”他转过身，继续写板书。\n\n"
+  + "你坐下，后背有点冒汗。同桌凑过来：“他信了吗？”你摇头。同桌说：“他肯定不信。”",
+  "c1_physics"),
+
+fb_start_silent: fb("序章", "开学第一天",
+  "你什么都没说，只是点了点头。\n\n"
+  + "韩磊似乎也没打算追问。他看了你一眼，转过身去继续讲课。\n\n"
+  + "你坐下，松了口气。同桌小声说：“你这人挺安静的。”\n\n"
+  + "你没接话。但不知为什么，你偷偷又看了一眼讲台上那个茶瓶。",
+  "c1_physics"),
+
+// ==================== 第一章 ====================
+c1_physics: {
+  chapter: "第一章 · 高一·上", title: "物理小测",
+  text: function() {
+    return "第一次物理小测，卷子发下来的时候，你看着上面那个红色的分数，沉默了。\n\n"
+      + "窗外的梧桐叶开始泛黄，阳光从玻璃透进来，在桌面上切出一块亮斑。\n\n"
+      + "下课铃响，韩磊收拾教案的时候看了你一眼。\n\n"
+      + "“留一下。”\n\n"
+      + "办公室里只有他一个人。桌上摊着几摞作业本，旁边是一杯冒着热气的茶——这次是真的，你能闻见茉莉花的味道。\n\n"
+      + "他眯着眼看你，没有生气，语气很平。\n\n"
+      + "“哪里不会？”";
+  },
+  choices: [
+    { text: "认真请教每一道错题", next: "fb_c1_physics_serious", effects: { favor: 4, trust: 6, study: 10 } },
+    { text: "说这次只是没复习", next: "fb_c1_physics_excuse", effects: { favor: -2, stress: 6 } },
+    { text: "问他为什么不戴眼镜", next: "fb_c1_physics_glasses", effects: { favor: 3, trust: 3 } }
+  ]
+},
+
+fb_c1_physics_serious: fb("第一章 · 高一·上", "物理小测",
+  "你把卷子摊开，一道道错题指给他看。\n\n"
+  + "韩磊拿起笔，在草稿纸上慢慢演算。他的字很好看，步骤清晰。你听着听着，忽然觉得物理没那么难。\n\n"
+  + "讲到第三道题的时候，他停了一下。\n\n"
+  + "“这道题你不该错。”他说，“下次注意。”\n\n"
+  + "你点头。他把草稿纸撕下来递给你：“带回去看。”",
+  "c1_seat"),
+
+fb_c1_physics_excuse: fb("第一章 · 高一·上", "物理小测",
+  "你说这次只是没复习。\n\n"
+  + "韩磊没有说什么，只是把卷子推回给你，手指点了点其中一道题。\n\n"
+  + "“这道题不是复不复习的问题。”\n\n"
+  + "你低头看那道题，脸有点热。他也没再说什么，只是让你回去把错题整理一遍。\n\n"
+  + "你走出办公室的时候，听见他拿起杯子喝了一口茶。",
+  "c1_seat"),
+
+fb_c1_physics_glasses: fb("第一章 · 高一·上", "物理小测",
+  "你没问错题，反而问他为什么不戴眼镜。\n\n"
+  + "韩磊眯着眼看了你两秒，像是没料到这个问题。\n\n"
+  + "“戴着不舒服。”他说。\n\n"
+  + "“那你看得清吗？”\n\n"
+  + "“看得清你。”他答得很顺，说完自己也顿了一下，低头翻开卷子，“……讲题。”\n\n"
+  + "你没忍住，笑了一下。他也当没看见。",
+  "c1_seat"),
+
+c1_seat: {
+  chapter: "第一章 · 高一·上", title: "座位调整",
+  text: function() {
+    return "第二周，班主任调整座位。你被安排到了前排，第三排靠窗的位置。\n\n"
+      + "同桌是个笑点很低的人。第一节物理课，韩磊在讲台上低头翻教案的时候，同桌凑了过来。\n\n"
+      + "“你看他。”同桌用笔尖指了指，“今天又是那个瓶子。”\n\n"
+      + "你抬头。韩磊正拿起瓶子喝了一口。透明的瓶身里，液体清得能看见后面的黑板。\n\n"
+      + "“你说他怎么想的。”同桌小声说，“茶瓶子装水，装得这么认真。”\n\n"
+      + "你盯着那个瓶子看了三秒。其实你早就看过了。只是不想告诉同桌，你也注意到了。";
+  },
+  choices: [
+    { text: "顺着她的话敷衍两句", next: "fb_c1_seat_bet", effects: { favor: 3, trust: 3, flag: "bottle_watch" } },
+    { text: "低头看书，不想接话", next: "fb_c1_seat_boring", effects: { study: 6 } }
+  ]
+},
+
+fb_c1_seat_bet: fb("第一章 · 高一·上", "座位调整",
+  "“是啊，怪人。”你说。\n\n"
+  + "同桌眼睛一亮，凑得更近：“那我们记他每次带什么吧。东方树叶、三得利、还是别的。”\n\n"
+  + "你点头。心里却想的是：其实昨天他拿的那瓶，你早就看过了。\n\n"
+  + "从这一天起，物理课多了一个只有你们两个人知道的小记录。",
+  "c1_sports"),
+
+fb_c1_seat_boring: fb("第一章 · 高一·上", "座位调整",
+  "“没什么好看的。”你说完就低头翻课本。\n\n"
+  + "同桌耸了耸肩，也转了回去。教室里很安静，只有翻书的声音。\n\n"
+  + "韩磊在讲台上讲完一道题，扫了一眼教室。你低着头，笔尖在纸上划。\n\n"
+  + "不知道为什么，那一瞬间你觉得他的视线好像在你这里停了一下。也许只是错觉。",
+  "c1_sports"),
+
+c1_sports: {
+  chapter: "第一章 · 高一·上", title: "秋季运动会",
+  text: function() {
+    return "十月，秋季运动会。\n\n"
+      + "天空蓝得很干净，操场上拉着彩旗，广播里在放进行曲。你报了四百米——其实是被体委硬塞的。\n\n"
+      + "起跑线上，你蹲下身，手指碰到塑胶跑道，有一点凉。\n\n"
+      + "枪响。你冲出去。跑到最后一个弯道的时候，脚下一滑。\n\n"
+      + "你摔在跑道上，膝盖火辣辣地疼。人群的声音一下子涌过来。\n\n"
+      + "有人蹲到你身边。是韩磊。他没戴眼镜，眯着眼看你的脚踝，眉头皱了一下。\n\n"
+      + "“能站起来吗？”";
+  },
+  choices: [
+    { text: "接受帮助，去医务室", next: "c1_sports_pathA", effects: { favor: 6, trust: 5 } },
+    { text: "逞强说没事", next: "c1_sports_pathB", effects: { study: 6, stress: 4 } },
+    { text: "开玩笑：“老师你跑得比物理公式还快。”", next: "c1_sports_pathC", effects: { favor: 4, trust: 3 } }
+  ]
+},
+
+c1_sports_pathA: {
+  chapter: "第一章 · 高一·上", title: "秋季运动会 · 医务室",
+  text: function() {
+    return "你伸出手。韩磊扶着你站起来，手一直虚扶在你胳膊边，没有真的碰到你。\n\n"
+      + "去医务室的路上他走得很慢，配合你的步子。操场上的广播还在报项目，声音忽远忽近。\n\n"
+      + "医务室的老师给你上了药，说没伤到骨头，休息两天就好。\n\n"
+      + "韩磊一直站在门口等，没进来。\n\n"
+      + "你出来的时候，他正在看手机。看到你，他把手机收起来：“能走吗？”\n\n"
+      + "你点头。\n\n"
+      + "他从兜里掏出一瓶没开封的矿泉水递给你。\n\n"
+      + "“喝点水。”\n\n"
+      + "你接过来。\n\n"
+      + "那一刻你忽然觉得，他其实不像上课时那么冷。";
+  },
+  choices: [
+    { text: "说谢谢", next: "fb_c1_sportsA_thanks", effects: { favor: 3, trust: 3 } },
+    { text: "问他上课为什么总眯眼", next: "fb_c1_sportsA_ask", effects: { favor: 5, trust: 2 } }
+  ]
+},
+
+fb_c1_sportsA_thanks: fb("第一章 · 高一·上", "秋季运动会 · 医务室",
+  "你说谢谢。\n\n"
+  + "韩磊看了你一眼，点了点头。\n\n"
+  + "“以后跑步注意。”他说。\n\n"
+  + "然后他走了。你站在原地，拧开那瓶水喝了一口。\n\n"
+  + "回到教室的时候，同桌凑过来：“他送你去的？”\n\n"
+  + "你“嗯”了一声。同桌笑了：“那你运气挺好。”",
+  "c1_bottle"),
+
+fb_c1_sportsA_ask: fb("第一章 · 高一·上", "秋季运动会 · 医务室",
+  "你问他上课为什么总眯眼。\n\n"
+  + "韩磊愣了一下，然后笑了。\n\n"
+  + "“近视。”他说，“懒得戴。”\n\n"
+  + "“那你怎么看得清黑板？”\n\n"
+  + "“离得近。”\n\n"
+  + "你想起他站讲台的距离，确实比一般老师靠前。\n\n"
+  + "“那你看得清我们吗？”\n\n"
+  + "他看了你两秒，没答。\n\n"
+  + "“回教室吧。”他说完转身走了。\n\n"
+  + "你站在原地，觉得他刚才那两秒，像是在想别的事。",
+  "c1_bottle"),
+
+c1_sports_pathB: {
+  chapter: "第一章 · 高一·上", title: "秋季运动会 · 跑道",
+  text: function() {
+    return "你咬着牙站起来，试着走了两步。膝盖疼得厉害，但你忍住了。\n\n"
+      + "韩磊没有坚持，只是在你身后跟了几步。\n\n"
+      + "“如果疼，就去医务室。”\n\n"
+      + "你回头看他，他已经转身走了，回到终点线那边继续看着其他学生。\n\n"
+      + "你一瘸一拐地走回班级看台。同桌吓了一跳，把你按在座位上。\n\n"
+      + "“你干嘛逞强。”\n\n"
+      + "你说没事。\n\n"
+      + "那天下午的比赛你一场都没看。你坐在看台上，膝盖一直在疼。\n\n"
+      + "但你没去医务室。你不想让他觉得你矫情。";
+  },
+  choices: [
+    { text: "放学后一瘸一拐地走出校门", next: "fb_c1_sportsB_leave", effects: { stress: 3 } }
+  ]
+},
+
+fb_c1_sportsB_leave: fb("第一章 · 高一·上", "秋季运动会 · 跑道",
+  "放学的时候，你一个人慢慢往校门口走。\n\n"
+  + "身后有人叫你。你回头，是韩磊。\n\n"
+  + "他手里拎着包，看起来也正要走。\n\n"
+  + "“腿还疼？”\n\n"
+  + "你说不疼。\n\n"
+  + "他没拆穿，只是放慢了脚步，和你并排走到校门口。\n\n"
+  + "“以后别逞强。”他说。\n\n"
+  + "然后他走了。你站在原地，看着他的背影。\n\n"
+  + "你不知道他刚才那一路，是特意陪你走的，还是顺路。",
+  "c1_bottle"),
+
+c1_sports_pathC: {
+  chapter: "第一章 · 高一·上", title: "秋季运动会 · 跑道",
+  text: function() {
+    return "韩磊愣了一下，然后笑了。\n\n"
+      + "那种笑和上课时不一样，没那么正式，眼角的细纹都出来了。\n\n"
+      + "“跑得不快，你倒是挺能说。”\n\n"
+      + "他扶着你站起来。你俩往医务室走，路上他一句话都没说。\n\n"
+      + "到了医务室门口，他停下。\n\n"
+      + "“进去吧。”\n\n"
+      + "你说：“老师你不进来？”\n\n"
+      + "“我进去干嘛。”他抬手推了下并不存在的眼镜，“我又不是医生。”\n\n"
+      + "你笑了。他也笑了。\n\n"
+      + "你进去的时候回头看了一眼——他还站在门口。";
+  },
+  choices: [
+    { text: "心里记下这个画面", next: "fb_c1_sportsC_remember", effects: { favor: 4 } }
+  ]
+},
+
+fb_c1_sportsC_remember: fb("第一章 · 高一·上", "秋季运动会 · 跑道",
+  "你上完药出来的时候，门口已经没人了。\n\n"
+  + "你有点失落，但也没多想。\n\n"
+  + "回教室的路上，你突然想起刚才他那个笑。\n\n"
+  + "那种没忍住的、眼角的细纹都出来的笑。\n\n"
+  + "你想，这大概是第一次他把你当学生之外的人看。",
+  "c1_bottle"),
+
+c1_bottle: {
+  chapter: "第一章 · 高一·上", title: "期中考试前",
+  text: function() {
+    return "期中考试前一周。\n\n"
+      + "教室里全是翻书的声音。你在做题，同桌在旁边小声抱怨物理太难。\n\n"
+      + "韩磊走进来，把一摞卷子放在讲台上。他的目光在教室里扫了一圈，最后落到了你这里。\n\n"
+      + "“作业。”他说。\n\n"
+      + "你抱着卷子上去，走到他面前的时候，他正低头往茶瓶里倒水。\n\n"
+      + "动作很自然。像是做过很多次。\n\n"
+      + "他抬头，对上你的视线，也没躲。\n\n"
+      + "“看什么。”他说，语气平得不像在问。\n\n"
+      + "你摇摇头，把卷子放下，转身走了。";
+  },
+  choices: [
+    { text: "什么都不说", next: "fb_c1_bottle_silent", effects: { favor: 2, trust: 2 } },
+    { text: "“老师你这样真的很像在泡茶。”", next: "fb_c1_bottle_joke", effects: { favor: 4, trust: 3, flag: "bottle_watch" } },
+    { text: "回头又看了一眼", next: "fb_c1_bottle_lookback", effects: { favor: 5, stress: 2 } }
+  ]
+},
+
+fb_c1_bottle_silent: fb("第一章 · 高一·上", "期中考试前",
+  "你什么都没说。\n\n"
+  + "回座位的路上，你听见他在身后拧瓶盖的声音。\n\n"
+  + "同桌凑过来：“你刚才看什么呢？”\n\n"
+  + "“没什么。”你说。然后低下头，翻开卷子。\n\n"
+  + "那一节课你都没再抬头。但你记得他刚才的动作。",
+  "c1_exam"),
+
+fb_c1_bottle_joke: fb("第一章 · 高一·上", "期中考试前",
+  "你说他像在泡茶。\n\n"
+  + "韩磊看了你一眼，把瓶盖拧上。\n\n"
+  + "“观察力用在物理上就好了。”\n\n"
+  + "话是这么说，但你没听出责怪的意思。他低头批作业，你转身回座位。\n\n"
+  + "同桌问你怎么笑得那么开心。你说没什么。",
+  "c1_exam"),
+
+fb_c1_bottle_lookback: fb("第一章 · 高一·上", "期中考试前",
+  "你走回座位的时候，忍不住又回头看了一眼。\n\n"
+  + "韩磊正低头批卷子，没注意到你。他批卷子的姿势很认真，笔尖在纸面上划出细细的声音。\n\n"
+  + "茶瓶就放在他手边。\n\n"
+  + "你收回视线，心跳有点快。同桌在旁边戳你：“你干嘛呢。”\n\n"
+  + "“没事。”你说。",
+  "c1_exam"),
+
+c1_exam: {
+  chapter: "第一章 · 高一·上", title: "月考成绩",
+  text: function() {
+    if (state.study >= 18) {
+      return "十二月的月考，你的物理进步了。\n\n"
+        + "成绩单贴在教室后墙上，围了一圈人。你挤进去看了一眼自己的分数，愣了一下。\n\n"
+        + "韩磊发卷子的时候，多看了你一眼。他眯着眼，没说话，只是把卷子递给你的时候，手指在分数上停了一下。\n\n"
+        + "窗外的天很冷，玻璃上蒙着一层薄薄的雾气。\n\n"
+        + "“不错。”他说。";
+    }
+    return "十二月的月考，你的物理还是不太好。\n\n"
+      + "成绩单贴在教室后墙上，你没有挤进去看。\n\n"
+      + "晚自习，韩磊把你留下来补习。教室里只剩下几个人，日光灯嗡嗡响。\n\n"
+      + "他坐在你旁边，拿着笔在草稿纸上画图，手肘偶尔碰到你的胳膊。你能闻到他身上淡淡的粉笔味。\n\n"
+      + "“这里，再想想。”";
+  },
+  choices: [
+    { text: "继续努力", next: "fb_c1_exam_continue", effects: { study: 8, trust: 5 } },
+    { text: "问他为什么当老师", next: "fb_c1_exam_ask", effects: { favor: 5, trust: 4 } },
+    { text: "沉默地收拾书包", next: "fb_c1_exam_silent", effects: { favor: 1 } }
+  ]
+},
+
+fb_c1_exam_continue: fb("第一章 · 高一·上", "月考成绩",
+  "你继续按部就班地学。\n\n"
+  + "晚自习的时候，韩磊在教室里转了一圈，走到你旁边站了一下，看你写题。他没说话，走开了。\n\n"
+  + "但你觉得他在你那里停了比别处长一点。\n\n"
+  + "同桌在旁边用笔戳你。你没理她。",
+  "c1_end"),
+
+fb_c1_exam_ask: fb("第一章 · 高一·上", "月考成绩",
+  "你问他为什么当老师。\n\n"
+  + "韩磊愣了一下。他放下手里的笔，眯着眼想了想。\n\n"
+  + "“物理有意思。”他顿了一下，“教你们也挺有意思。”\n\n"
+  + "说完他自己也笑了一下，像是觉得这个回答太简单了。\n\n"
+  + "你没再问。但你觉得他说这句话的时候，眼睛里有一点别的东西。",
+  "c1_end"),
+
+fb_c1_exam_silent: fb("第一章 · 高一·上", "月考成绩",
+  "你默默收拾书包。\n\n"
+  + "韩磊看了你一眼，也没多说什么。你走出办公室的时候，回头看了一眼——他正低头继续批作业，灯光照在他头发上。\n\n"
+  + "走廊里很安静。你走回教室，发现同桌还在等你一起回家。",
+  "c1_end"),
+
+c1_end: {
+  chapter: "第一章 · 高一·上", title: "章末",
+  text: function() {
+    return "寒假前的最后一周。\n\n"
+      + "教室里的暖气终于开了，玻璃上凝着水汽，有人用手指在上面画了一个笑脸。\n\n"
+      + "你开始习惯每天先看一眼讲台，再听他的课。\n\n"
+      + "放学的时候，同桌收拾书包，突然停下来。\n\n"
+      + "“你最近怎么老看讲台？”\n\n"
+      + "“看他那个瓶子。”你说得太快了。\n\n"
+      + "同桌看了你两秒。\n\n"
+      + "“是吗。”她说，“我还以为你在看人呢。”\n\n"
+      + "她背上书包跑了。你站在教室门口，看着她的背影，觉得脸上有点热。";
+  },
+  choices: [{ text: "进入第二章", next: "c2_open" }]
+},
+
+// ==================== 第二章 ====================
+c2_open: {
+  chapter: "第二章 · 高一·下", title: "开学第一课",
+  text: function() {
+    return "二月，开学。\n\n"
+      + "天气还没转暖，教室里的暖气开得很足，窗玻璃上全是雾气。有人在上面写“新学期加油”，字迹被水汽模糊了一半。\n\n"
+      + "第一节物理课，韩磊推门进来。他换了件深蓝色的衬衫，袖口还是卷起来的。\n\n"
+      + "同桌用胳膊肘碰你：“来了。”\n\n"
+      + "“什么来了。”\n\n"
+      + "“你不是要看的吗。”\n\n"
+      + "你低下头，翻开课本，没理她。\n\n"
+      + "这节课讲圆周运动。他在黑板上画了一个圆，标出向心力的方向，回头眯眼笑了一下。\n\n"
+      + "“这个推导，是不是很熟悉？”\n\n"
+      + "他的视线扫过教室。你假装在看课本。";
+  },
+  choices: [
+    { text: "假装翻书，其实没看进去", next: "fb_c2_open_pretend", effects: { favor: 3, stress: 2 } },
+    { text: "低头记笔记", next: "fb_c2_open_notes", effects: { study: 8 } },
+    { text: "把同桌的胳膊推开", next: "fb_c2_open_push", effects: { trust: 1, stress: 3 } }
+  ]
+},
+
+fb_c2_open_pretend: fb("第二章 · 高一·下", "开学第一课",
+  "你翻开课本，眼睛落在上面，脑子却没跟着。\n\n"
+  + "韩磊讲完一个知识点，你在纸上无意识地画圈。同桌凑过来看了一眼，笑了。\n\n"
+  + "“你这画的什么。”\n\n"
+  + "你合上书，把纸塞进抽屉：“没什么。”\n\n"
+  + "下课铃响的时候你才发现，这一节课你一个字都没记进去。",
+  "c2_progress"),
+
+fb_c2_open_notes: fb("第二章 · 高一·下", "开学第一课",
+  "你低头记笔记。\n\n"
+  + "韩磊在讲台上讲，你一字一句地记。同桌在旁边捅了你一下，你没理她。\n\n"
+  + "下课之后，你翻了翻笔记，发现自己记得比上学期认真多了。\n\n"
+  + "窗外的天还很冷，但阳光已经有一点暖了。",
+  "c2_progress"),
+
+fb_c2_open_push: fb("第二章 · 高一·下", "开学第一课",
+  "你把同桌的胳膊推开了。\n\n"
+  + "她愣了一下，没再说话。你把课本翻到下一页，眼睛盯着公式，心里却烦。\n\n"
+  + "不知道是烦她，还是烦自己。\n\n"
+  + "下课的时候，同桌递给你一张纸条：“你最近怪怪的。”\n\n"
+  + "你把纸条折起来，塞进了口袋。",
+  "c2_progress"),
+
+c2_progress: {
+  chapter: "第二章 · 高一·下", title: "物理小测",
+  text: function() {
+    if (state.study >= 30) {
+      return "三月，第一次物理小测。\n\n"
+        + "这次你的分数不错。卷子发下来的时候，韩磊多看了你一眼，眯着眼，没说话。\n\n"
+        + "下课的时候你路过讲台，他正在收拾教案。\n\n"
+        + "“过来一下。”他说。\n\n"
+        + "你跟着他去了办公室。他把卷子摊在桌上，用手指点了点最后一道大题。\n\n"
+        + "“这道题全班只有三个人做对。”他说，“你是其中之一。”";
+    }
+    return "三月，第一次物理小测。\n\n"
+      + "你的成绩一般。韩磊没有多说什么，只是在课上讲题的时候，在你座位旁边多站了一会儿。\n\n"
+      + "你抬头，他正眯着眼看黑板，手里的粉笔在指间转了一圈。\n\n"
+      + "窗外的玉兰开了，白色的花瓣在风里轻轻晃。";
+  },
+  choices: [
+    { text: "问他有没有更难的题", next: "fb_c2_progress_thanks", effects: { favor: 3, trust: 6, study: 4 } },
+    { text: "把卷子收进抽屉，什么都不做", next: "fb_c2_progress_ignore", effects: { stress: 2 } },
+    { text: "和同桌抱怨物理太难", next: "fb_c2_progress_complain", effects: { favor: -1, stress: 2 } }
+  ]
+},
+
+fb_c2_progress_thanks: fb("第二章 · 高一·下", "物理小测",
+  "你问他有没有更难的题。\n\n"
+  + "韩磊看了你一眼，从抽屉里拿出一本卷子，翻到中间某一页，折了个角。\n\n"
+  + "“试试这套。”他说，“做完拿来找我。”\n\n"
+  + "你接过来。封面上什么都没写。翻开第一页，题目比课上的难得多。\n\n"
+  + "你抬头看他。他已经低头继续批作业了。\n\n"
+  + "“老师。”你说。\n\n"
+  + "“嗯？”\n\n"
+  + "“没什么。”\n\n"
+  + "你抱着卷子走出了办公室。走廊里阳光很好。",
+  "c2_research"),
+
+fb_c2_progress_ignore: fb("第二章 · 高一·下", "物理小测",
+  "你把卷子收进抽屉，什么都没做。\n\n"
+  + "下课后，同桌问你要不要去问老师几道题。你说不去。\n\n"
+  + "“你最近怎么都不去办公室了？”她问。\n\n"
+  + "“懒得去。”你说。\n\n"
+  + "同桌看了你一会儿，没说话。她大概是看出来了什么，但没点破。",
+  "c2_research"),
+
+fb_c2_progress_complain: fb("第二章 · 高一·下", "物理小测",
+  "你跟同桌抱怨物理太难。\n\n"
+  + "“他讲得也不怎么样。”你说，“老眯着眼，谁知道他在看哪儿。”\n\n"
+  + "同桌看了你一会儿，笑了：“你观察得挺仔细啊。”\n\n"
+  + "你闭嘴了。\n\n"
+  + "窗外玉兰花瓣落了一地。你觉得自己刚才那句话特别此地无银。",
+  "c2_research"),
+
+c2_research: {
+  chapter: "第二章 · 高一·下", title: "春季研学",
+  text: function() {
+    return "四月，学校组织春季研学。去的是郊区一个科技馆，坐大巴要两个小时。\n\n"
+      + "早上出发的时候天还有点凉。你上车找了个靠窗的位置，同桌坐在你旁边，戴着眼罩准备补觉。\n\n"
+      + "韩磊站在车头清点人数。他没戴眼镜，眯着眼一个一个数过去，手里拿着一张名单。\n\n"
+      + "数到你这里的时候，他停了一下。\n\n"
+      + "“到了。”他说。\n\n"
+      + "你点头。他继续往后走。\n\n"
+      + "同桌把眼罩掀起来一条缝：“他刚才是不是在跟你说话？”\n\n"
+      + "“点名而已。”你说。\n\n"
+      + "“点名需要笑吗。”\n\n"
+      + "你没接话，转头看窗外。";
+  },
+  choices: [
+    { text: "把同桌的眼罩按回去", next: "fb_c2_research_press", effects: { trust: 2 } },
+    { text: "到科技馆后，找机会问他问题", next: "fb_c2_research_ask", effects: { favor: 5, study: 6 } },
+    { text: "全程跟同桌走，不去找他", next: "fb_c2_research_avoid", effects: { favor: -3, stress: 4 } }
+  ]
+},
+
+fb_c2_research_press: fb("第二章 · 高一·下", "春季研学",
+  "你把她的眼罩按回去了。\n\n"
+  + "“睡觉。”你说。\n\n"
+  + "同桌没再问，笑了一声，翻了个身。\n\n"
+  + "车开动了。窗外的树一排一排往后跑。你靠着窗户，看着玻璃上自己的倒影，想刚才他是不是真的笑了一下。",
+  "c2_parents"),
+
+fb_c2_research_ask: fb("第二章 · 高一·下", "春季研学",
+  "科技馆里人很多，你找了个机会溜到韩磊旁边。\n\n"
+  + "他正站在一个光学展台前，看一块棱镜把白光拆成七色。\n\n"
+  + "“老师。”你说。\n\n"
+  + "他回头，眯着眼看你。\n\n"
+  + "“我有个问题。”\n\n"
+  + "他点头，示意你说。\n\n"
+  + "你把物理卷子上那道一直不会的题拿出来。他看了一眼，笑了。\n\n"
+  + "“这道题。”他说，“你昨天不是问过吗。”\n\n"
+  + "你没答。他也没追问，低下头，认认真真给你讲了一遍。",
+  "c2_parents"),
+
+fb_c2_research_avoid: fb("第二章 · 高一·下", "春季研学",
+  "你全程都跟同桌走。\n\n"
+  + "韩磊带你们参观的时候，你走在队伍最后。他讲解的时候，你假装在看展品。\n\n"
+  + "中午吃饭的时候，同桌问你：“你今天怎么了？”\n\n"
+  + "“没怎么。”\n\n"
+  + "“你是不是跟他闹别扭了？”\n\n"
+  + "“跟他闹什么别扭。”你说得太快了。\n\n"
+  + "同桌没再问。但你看得出来，她什么都猜到了。",
+  "c2_parents"),
+
+c2_parents: {
+  chapter: "第二章 · 高一·下", title: "家长会",
+  text: function() {
+    return "五月，家长会。\n\n"
+      + "教室里坐满了家长。你的座位空着。\n\n"
+      + "你一个人坐在操场看台上。天快黑了，远处教学楼的灯一盏一盏亮起来。风里有初夏的味道。\n\n"
+      + "有人在你旁边坐下来。是韩磊。他手里拿着茶瓶，坐姿很随意，像是也累了。\n\n"
+      + "“不太想说话？”";
+  },
+  choices: [
+    { text: "坦白：家里最近有点事", next: "c2_parents_pathA", effects: { favor: 4, trust: 8, flag: "told_family" } },
+    { text: "说没什么", next: "c2_parents_pathB", effects: { stress: 4, flag: "hid_family" } },
+    { text: "岔开话题，问他以前的事", next: "c2_parents_pathC", effects: { favor: 3, flag: "deflected_family" } }
+  ]
+},
+
+c2_parents_pathA: {
+  chapter: "第二章 · 高一·下", title: "家长会 · 坦白",
+  text: function() {
+    return "你说了。\n\n"
+      + "家里最近有点事。你没细说，但说了。\n\n"
+      + "韩磊没有追问。他只是坐在你旁边，陪你看着操场。\n\n"
+      + "天彻底黑了，教学楼的灯光照在看台上，你们的影子叠在一起。\n\n"
+      + "过了一会儿，他说：“有事可以找我。”\n\n"
+      + "你点头。\n\n"
+      + "“不是客套。”他补了一句。\n\n"
+      + "你转头看他。他没看你，正看着远处的教学楼。\n\n"
+      + "“嗯。”你说。\n\n"
+      + "他站起来，拍了拍裤子上的灰：“回去吧，家长会快结束了。”\n\n"
+      + "你跟着站起来。\n\n"
+      + "走的时候，你回头看了一眼空荡荡的看台。\n\n"
+      + "刚才他坐过的位置，还留着一点余温。";
+  },
+  choices: [
+    { text: "跟上去", next: "fb_c2_pA_follow", effects: { favor: 3, trust: 3 } }
+  ]
+},
+
+fb_c2_pA_follow: fb("第二章 · 高一·下", "家长会 · 坦白",
+  "你跟着他下了看台。\n\n"
+  + "操场上没什么人。他走在前面，脚步不快，像是在等你。\n\n"
+  + "走廊里他忽然停下，回头看你。\n\n"
+  + "“家长会你不用来。”他说，“以后有什么事，直接找我就行。”\n\n"
+  + "你点头。\n\n"
+  + "他转身进了办公室。你站在走廊里，灯光把你的影子拉得很长。\n\n"
+  + "那天晚上你躺在床上，忽然觉得，好像有什么东西不一样了。",
+  "c2_jealous"),
+
+c2_parents_pathB: {
+  chapter: "第二章 · 高一·下", title: "家长会 · 掩饰",
+  text: function() {
+    return "你说没什么。\n\n"
+      + "韩磊看了你两秒。\n\n"
+      + "他没拆穿，也没追问，只是点了点头。\n\n"
+      + "你们沉默地坐了一会儿。操场上有人在散步，远处有小孩在叫。\n\n"
+      + "“那行。”他说。\n\n"
+      + "然后他站起来，拍了拍裤子上的灰，走了。\n\n"
+      + "他走后，看台上就你一个人。\n\n"
+      + "天彻底黑了。风从操场那头吹过来，带着一点凉意。\n\n"
+      + "你一个人坐到家长会结束。\n\n"
+      + "收场的时候，你看见他从教学楼出来，手里拿着教案，往校门口走。\n\n"
+      + "他没看你。";
+  },
+  choices: [
+    { text: "叫住他", next: "fb_c2_pB_call", effects: { favor: 3, trust: 3 } },
+    { text: "看着他走远", next: "fb_c2_pB_watch", effects: { stress: 3 } }
+  ]
+},
+
+fb_c2_pB_call: fb("第二章 · 高一·下", "家长会 · 掩饰",
+  "你站起来，叫了一声“老师”。\n\n"
+  + "他停下，回头。\n\n"
+  + "“还有事？”\n\n"
+  + "你张了张嘴。想说的东西很多，但一句都说不出来。\n\n"
+  + "“……没事。”你说。\n\n"
+  + "他看了你一会儿，点了点头，走了。\n\n"
+  + "你站在原地，看着他的背影拐过教学楼，消失在路灯后面。\n\n"
+  + "你才发现，手心里全是汗。",
+  "c2_jealous"),
+
+fb_c2_pB_watch: fb("第二章 · 高一·下", "家长会 · 掩饰",
+  "你什么都没做。\n\n"
+  + "你坐在看台上，看着他走远，直到拐弯看不见了。\n\n"
+  + "操场上只剩你一个人。\n\n"
+  + "那一刻你忽然觉得，有些话如果不说，就永远说不出来了。\n\n"
+  + "你低下头，把脸埋进膝盖里。\n\n"
+  + "过了很久，你才站起来，往校门口走。",
+  "c2_jealous"),
+
+c2_parents_pathC: {
+  chapter: "第二章 · 高一·下", title: "家长会 · 岔开话题",
+  text: function() {
+    return "你不想说。\n\n"
+      + "你问了他一个和今天完全无关的问题。\n\n"
+      + "“老师，你以前参加过竞赛吗。”\n\n"
+      + "韩磊愣了一下。他大概看出来你在岔开话题。\n\n"
+      + "但他配合了。\n\n"
+      + "“参加过。”\n\n"
+      + "“拿奖了吗？”\n\n"
+      + "“拿过。”他说，“后来没去。”\n\n"
+      + "你没再问。他也没再解释。\n\n"
+      + "你们就这么坐着。他说了一些他读书时候的事，你听着。\n\n"
+      + "天彻底黑了。教学楼的灯光照下来，看台上一片暖黄。\n\n"
+      + "散场的时候，他站起来，拍了拍裤子上的灰。\n\n"
+      + "“走吧。”他说。\n\n"
+      + "你跟着站起来。\n\n"
+      + "走到拐角的时候，他忽然停下。\n\n"
+      + "“有些事不用说。”他说，“坐会儿也行。”\n\n"
+      + "你抬头看他。\n\n"
+      + "他没看你，已经走下台阶了。";
+  },
+  choices: [
+    { text: "跟上去", next: "fb_c2_pC_ask", effects: { favor: 5, trust: 3 } },
+    { text: "在原地站一会儿", next: "fb_c2_pC_quiet", effects: { favor: 3, trust: 2 } }
+  ]
+},
+
+fb_c2_pC_ask: fb("第二章 · 高一·下", "家长会 · 岔开话题",
+  "你跟了上去。\n\n"
+  + "他走得慢，你很快就和他并肩了。\n\n"
+  + "“你问这些干嘛。”他说。\n\n"
+  + "“随便问问。”\n\n"
+  + "“随便问问的人，不会记得我拿过奖。”\n\n"
+  + "你一时答不上来。\n\n"
+  + "他笑了一下，没继续追问。\n\n"
+  + "“回去吧。”他说，“明天还有课。”\n\n"
+  + "你点头。走到校门口，他往左，你往右。\n\n"
+  + "你走出几步，回头看了一眼。他已经走远了。",
+  "c2_jealous"),
+
+fb_c2_pC_quiet: fb("第二章 · 高一·下", "家长会 · 岔开话题",
+  "你在原地站了一会儿。\n\n"
+  + "看台上已经没人了，操场上也空了。教学楼的窗户一盏一盏灭掉。\n\n"
+  + "你想起他刚才说的话。\n\n"
+  + "“有些事不用说。”\n\n"
+  + "你低头笑了一下。\n\n"
+  + "然后你背上书包，慢慢往校门口走。\n\n"
+  + "门口的路灯下，你回头看了一眼操场看台。\n\n"
+  + "什么都没有。",
+  "c2_jealous"),
+
+c2_jealous: {
+  chapter: "第二章 · 高一·下", title: "期末前",
+  text: function() {
+    var base = "六月，期末临近。\n\n"
+      + "那天下午你去办公室交作业。走廊很长，阳光从窗户里斜切进来。\n\n"
+      + "办公室的门虚掩着。你正要推门，看见韩磊桌前站着一个女生。\n\n"
+      + "不是你们班的。你后来才知道，是隔壁班的物理课代表。\n\n"
+      + "她弯着腰，手指点在他的教案上，靠得很近。\n\n"
+      + "韩磊眯着眼看题，给她讲了一道题，讲完笑了一下。\n\n"
+      + "女生也笑了。\n\n";
+    if (state.flags.told_family) {
+      base += "你站在门口，手里的作业本突然变得有点沉。\n\n"
+        + "你想起家长会那晚，他说“不是客套”。\n\n"
+        + "你原以为那句话是只给你的。\n\n"
+        + "但现在你看见他对别人也笑，也耐心，也一遍遍讲题。\n\n"
+        + "你忽然不知道自己算什么。\n\n"
+        + "你站在那里，进也不是，退也不是。";
+    } else if (state.flags.hid_family) {
+      base += "你站在门口，手里的作业本突然变得有点沉。\n\n"
+        + "但你很快就把那点情绪压下去了。\n\n"
+        + "你告诉自己，跟你没关系。\n\n"
+        + "你本来什么都没跟他说。\n\n"
+        + "他对谁都这样，本来就该这样。\n\n"
+        + "你站在门口，站了两秒，转身走了。";
+    } else {
+      base += "你站在门口，手里的作业本突然变得有点沉。\n\n"
+        + "你想起家长会那晚，他说“坐会儿也行”。\n\n"
+        + "你原以为那是你们之间的东西。\n\n"
+        + "但现在你看见他对别人也笑，也耐心，也一遍遍讲题。\n\n"
+        + "你忽然觉得自己有点可笑。\n\n"
+        + "你站在那里，手指把作业本的边角捏出了一道折痕。";
+    }
+    return base;
+  },
+  choices: [
+    { text: "走进去，把作业放在他桌上", next: "fb_c2_jealous_putdown", effects: { favor: -3, stress: 3, flag: "jealous" } },
+    { text: "转身离开，改天再来", next: "fb_c2_jealous_leave", effects: { favor: -5, stress: 5, flag: "jealous" } },
+    { text: "回教室，装作没看见", next: "fb_c2_jealous_ignore", effects: { favor: -2, stress: 4, flag: "jealous" } }
+  ]
+},
+
+fb_c2_jealous_putdown: fb("第二章 · 高一·下", "期末前",
+  "你推门进去，把作业本放在他桌上。声音比平时大了一点。\n\n"
+  + "韩磊抬头看你，眯着眼。\n\n"
+  + "“放这就行。”\n\n"
+  + "那个女生看了你一眼，笑了笑，继续问问题。你转身走了。\n\n"
+  + "回教室的路上，你走得很快。同桌问你交个作业怎么这么久，你说没什么。\n\n"
+  + "但你心里很清楚，你刚才为什么那么大声。",
+  "c2_summer"),
+
+fb_c2_jealous_leave: fb("第二章 · 高一·下", "期末前",
+  "你没有进去。\n\n"
+  + "你转身走了，手里的作业本抱得很紧。走廊很长，你走到头才想起来自己本来是来交作业的。\n\n"
+  + "第二天你把作业放在了讲台上。韩磊看了一眼，没问为什么。\n\n"
+  + "但你总觉得他好像注意到了什么。",
+  "c2_summer"),
+
+fb_c2_jealous_ignore: fb("第二章 · 高一·下", "期末前",
+  "你回教室了。什么都没做。\n\n"
+  + "同桌问你作业交了没，你说交了。\n\n"
+  + "那一整天你都没看办公室的方向。晚自习的时候韩磊进来巡课，你埋头做题，笔尖在纸上划得很快。\n\n"
+  + "他在你旁边站了一会儿，走了。你没抬头。",
+  "c2_summer"),
+
+c2_summer: {
+  chapter: "第二章 · 高一·下", title: "暑假前最后一节课",
+  text: function() {
+    var base = "七月，期末最后一节课。\n\n"
+      + "天气热得不像话，教室里的风扇吱呀吱呀转，吹出来的全是热风。\n\n"
+      + "韩磊讲完最后一道题，在黑板上写下暑假作业的页码。他转身，在黑板前站了一下。\n\n"
+      + "全班都在收拾东西，没人注意。\n\n";
+    if (state.flags.told_family) {
+      base += "但你注意到了。\n\n"
+        + "他收拾教案的动作比平时慢。\n\n"
+        + "你站起来的时候，他的视线扫过来，停了一下。\n\n"
+        + "像是有话要说，最后没说。\n\n"
+        + "你低下头，假装在收拾书包。\n\n"
+        + "同桌凑过来小声说：“他又看你了。”\n\n"
+        + "“我没有看他。”\n\n"
+        + "“我没说你在看他。”\n\n"
+        + "你把书包往肩上一甩，先走了。";
+    } else if (state.flags.hid_family) {
+      base += "你没看他。\n\n"
+        + "从那次办公室门口之后，你就决定不再多想。\n\n"
+        + "你低头收拾书包，动作很快。\n\n"
+        + "同桌问你暑假去哪玩，你说不知道。\n\n"
+        + "你站起来的时候，余光扫到讲台——他正看着门口的方向。\n\n"
+        + "不是看你。\n\n"
+        + "你告诉自己，不是看你。";
+    } else {
+      base += "但你注意到了。\n\n"
+        + "他收拾教案的动作比平时慢。\n\n"
+        + "你低下头，假装在收拾书包。\n\n"
+        + "同桌凑过来小声说：“你又看了。”\n\n"
+        + "“我没有。”\n\n"
+        + "“你耳朵红了。”\n\n"
+        + "你把书包往肩上一甩，先走了。";
+    }
+    return base;
+  },
+  choices: [
+    { text: "在楼梯口等他出来", next: "fb_c2_summer_wait", effects: { favor: 5 } },
+    { text: "直接回家", next: "fb_c2_summer_leave", effects: {} },
+    { text: "发消息问他暑假作业", next: "fb_c2_summer_message", effects: { favor: 4, stress: 3, flag: "msg" } }
+  ]
+},
+
+fb_c2_summer_wait: fb("第二章 · 高一·下", "暑假前最后一节课",
+  "你站在楼梯口，假装在等人。\n\n"
+  + "其实你也没想好要等谁。只是不想这么快就走。\n\n"
+  + "韩磊最后出来，手里抱着一摞卷子。看到你，他脚步慢了半拍。\n\n"
+  + "“还没走？”\n\n"
+  + "“嗯。”\n\n"
+  + "“路上小心。”他说完就走了。\n\n"
+  + "你站在原地，看着他下楼。他一次都没回头。",
+  "c2_anxiety"),
+
+fb_c2_summer_leave: fb("第二章 · 高一·下", "暑假前最后一节课",
+  "你直接回家了。\n\n"
+  + "走在路上，你忍不住想起刚才他站在黑板前的样子。\n\n"
+  + "你停下脚步，回头看了一眼学校。教学楼三楼的窗户关着，看不见里面。\n\n"
+  + "你转身继续走。风从背后吹过来，热得让人喘不过气。",
+  "c2_anxiety"),
+
+fb_c2_summer_message: fb("第二章 · 高一·下", "暑假前最后一节课",
+  "那天晚上，你翻来覆去睡不着，最后还是拿起手机，发了一条消息。\n\n"
+  + "你：老师，暑假作业第三页那道题答案是多少？\n\n"
+  + "过了两分钟，手机亮了。\n\n"
+  + "🐱 CFBDSIR2149\n"
+  + "自己写。\n\n"
+  + "你盯着那个猫头像看了很久。\n\n"
+  + "然后你把手机扣在枕边，脸埋进被子里。",
+  "c2_anxiety"),
+
+c2_anxiety: {
+  chapter: "第二章 · 高一·下", title: "暑假",
+  text: function() {
+    var base = "暑假的前半段过得很快。补课、作业、和朋友出去玩。\n\n"
+      + "但到了七月末，你开始有点烦躁。\n\n"
+      + "因为开学要重新分班。\n\n"
+      + "你不知道自己会被分到哪个班，也不知道韩磊还会不会是你的班主任。\n\n";
+    if (state.flags.told_family) {
+      base += "你想起家长会那晚他说“不是客套”。\n\n"
+        + "这句话你暑假已经想过很多遍了。\n\n"
+        + "你打开手机，看着那个猫头像。\n\n"
+        + "你打了一行字，删掉。\n\n"
+        + "又打了一行，又删掉。\n\n"
+        + "最后你把手机扣在枕边，闭上眼。\n\n"
+        + "你告诉自己，开学就知道了。";
+    } else if (state.flags.hid_family) {
+      base += "你没跟任何人说过这件事。\n\n"
+        + "同桌发消息约你出去玩，你回“不想动”。\n\n"
+        + "妈妈问你暑假怎么老一个人待着，你说没什么。\n\n"
+        + "有一天晚上你翻通讯录，从上翻到下，最后没发给任何人。\n\n"
+        + "你把手机放到床头，看着天花板。\n\n"
+        + "心口那块石头，一直没落地。";
+    } else {
+      base += "这个念头一冒出来，你就觉得胸口闷闷的。你告诉自己，只是不想换环境而已。\n\n"
+        + "但你知道那是个借口。";
+    }
+    return base;
+  },
+  choices: [
+    { text: "给同桌发消息，聊这件事", next: "fb_c2_anxiety_talk", effects: { trust: 3, stress: -3 } },
+    { text: "一个人闷着，什么也不说", next: "fb_c2_anxiety_alone", effects: { stress: 5 } },
+    { text: "翻出物理课本，看了一会儿", next: "fb_c2_anxiety_study", effects: { study: 6, favor: 2 } }
+  ]
+},
+
+fb_c2_anxiety_talk: fb("第二章 · 高一·下", "暑假",
+  "你给同桌发消息：你说开学分班，会不会换班主任。\n\n"
+  + "她秒回：你担心的是换班主任，还是换谁。\n\n"
+  + "你盯着这句话，看了很久。\n\n"
+  + "最后你回：换谁啊，我就随便问问。\n\n"
+  + "她回了一个字：哦。\n\n"
+  + "然后就没有下文了。但你觉得她一定在屏幕那边笑。",
+  "c2_end"),
+
+fb_c2_anxiety_alone: fb("第二章 · 高一·下", "暑假",
+  "你什么都没说。\n\n"
+  + "整个暑假的最后两周，你都在反复刷班级群，看有没有分班的消息。\n\n"
+  + "有一天群里终于发了新班级名单。\n\n"
+  + "你在名单里找到了自己的名字。然后往下看。\n\n"
+  + "班主任那一栏写着：韩磊。\n\n"
+  + "你盯着那两个字看了很久，然后放下手机，躺倒在床上。\n\n"
+  + "心口那块石头，落了地。",
+  "c2_end"),
+
+fb_c2_anxiety_study: fb("第二章 · 高一·下", "暑假",
+  "你把物理课本翻出来，从第一页看到最后一页。\n\n"
+  + "其实没看进去多少。你只是在想，如果开学他还在，他讲的时候你能听懂。\n\n"
+  + "想到这里，你觉得自己有点可笑。\n\n"
+  + "但你还是继续翻着。",
+  "c2_end"),
+
+c2_end: {
+  chapter: "第二章 · 高一·下", title: "章末",
+  text: function() {
+    return "暑假结束前一周，分班名单出来了。\n\n"
+      + "你的名字在（14）班。班主任：韩磊。\n\n"
+      + "你看了很久，然后把手机扣在桌上，没告诉任何人。\n\n"
+      + "那天晚上你睡得特别早。";
+  },
+  choices: [{ text: "进入第三章", next: "c3_open" }]
+},
+
+// ==================== 第三章 ====================
+c3_open: {
+  chapter: "第三章 · 高二", title: "分班后第一节课",
+  text: function() {
+    return "九月，高二开学。\n\n"
+      + "重新分班，教室换到了另一栋楼。新教室比原来的大，窗户朝南，早上的阳光很晃眼。\n\n"
+      + "韩磊还是你的班主任。\n\n"
+      + "他走进教室，扫了一眼座位表，眯着眼找你。你低下头，假装在看课本。\n\n"
+      + "他拿起讲台上的瓶子喝了一口，开始讲课。\n\n"
+      + "你一节课都没敢看他。";
+  },
+  choices: [
+    { text: "强迫自己抬头", next: "fb_c3_open_up", effects: { favor: 5, trust: 2, stress: 4 } },
+    { text: "继续低头", next: "fb_c3_open_down", effects: { study: 8 } },
+    { text: "被同桌发现异常", next: "fb_c3_open_deskmate", effects: { trust: 3 } }
+  ]
+},
+
+fb_c3_open_up: fb("第三章 · 高二", "分班后第一节课",
+  "你强迫自己抬头。\n\n"
+  + "韩磊正在板书，你看着他的背影。白衬衫的后背有一点褶皱，粉笔灰落在肩上。\n\n"
+  + "他写完一行字，转过身，视线扫过你，又移开了。\n\n"
+  + "你松了口气，又有点失落。\n\n"
+  + "下课之后，你发现自己什么都没记住。",
+  "c3_contest"),
+
+fb_c3_open_down: fb("第三章 · 高二", "分班后第一节课",
+  "你一整节课都低着头。\n\n"
+  + "笔记写了大半页，但你自己都不知道写了什么。下课铃响的时候，你才发现自己一直在画圈。\n\n"
+  + "同桌看了一眼你的笔记本，没说话。\n\n"
+  + "窗外阳光很好。你把那页笔记翻过去，压在最下面。",
+  "c3_contest"),
+
+fb_c3_open_deskmate: fb("第三章 · 高二", "分班后第一节课",
+  "同桌发现你不对劲。\n\n"
+  + "她小声问你最近怎么了。你张了张嘴，最后只说“没事”。\n\n"
+  + "她没再追问，只是看你的眼神多了点担心。\n\n"
+  + "下课之后，她把自己的笔记推给你：“你刚才没记全，抄我的吧。”",
+  "c3_contest"),
+
+c3_contest: {
+  chapter: "第三章 · 高二", title: "物理竞赛",
+  text: function() {
+    return "十月，物理竞赛报名开始。\n\n"
+      + "办公室的窗开着，风把桌上的试卷吹起来一角。韩磊坐在桌前，面前摊着一份竞赛通知。\n\n"
+      + "他眯着眼看你，像是在斟酌措辞。\n\n"
+      + "“觉得自己不行？”";
+  },
+  choices: [
+    { text: "报名", next: "fb_c3_contest_join", effects: { favor: 5, study: 10, stress: 6, flag: "contest" } },
+    { text: "拒绝", next: "fb_c3_contest_refuse", effects: { favor: -2, stress: -4 } },
+    { text: "踌躇，说想再想想", next: "c3_contest_hesitate", effects: { favor: 2, stress: 3 } }
+  ]
+},
+
+fb_c3_contest_join: fb("第三章 · 高二", "物理竞赛",
+  "你说你报名。\n\n"
+  + "韩磊点了点头，在名单上写下你的名字。笔尖压在纸上，发出沙沙的声音。\n\n"
+  + "“有不会的，随时来问。”他说这话的时候没看你，但语气比平时认真。\n\n"
+  + "你走出办公室的时候，心里有点紧张，也有点期待。",
+  "c3_hallway"),
+
+fb_c3_contest_refuse: fb("第三章 · 高二", "物理竞赛",
+  "你拒绝了。\n\n"
+  + "韩磊没有勉强，只是把名单收了起来。\n\n"
+  + "“也好，高三再说。”\n\n"
+  + "他把笔放回笔筒，继续批作业，像是刚才什么都没发生。\n\n"
+  + "你走到门口，回头看了他一眼。他没抬头。",
+  "c3_hallway"),
+
+c3_contest_hesitate: {
+  chapter: "第三章 · 高二", title: "物理竞赛",
+  text: function() {
+    return "你说想再想想。\n\n"
+      + "韩磊点了点头，没追问。他把竞赛通知收进抽屉，像是根本没指望你今天给答复。\n\n"
+      + "“想清楚了告诉我。”他说。\n\n"
+      + "你走出办公室。走廊里阳光很好，但你心里乱糟糟的。\n\n"
+      + "——\n\n"
+      + "三天后的晚上。\n\n"
+      + "你躺在床上翻来覆去，手机亮了一下。\n\n"
+      + "〔🐱 CFBDSIR2149〕\n"
+      + "报名截止明天。\n\n"
+      + "你盯着那条消息看了很久。";
+  },
+  choices: [
+    { text: "报名", next: "fb_c3_hesitate_join", effects: { favor: 6, study: 10, stress: 6, flag: "contest" } },
+    { text: "不报", next: "fb_c3_hesitate_skip", effects: { favor: 1, stress: -3, flag: "skip_contest" } },
+    { text: "回：老师你希望我报吗", next: "fb_c3_hesitate_ask", effects: { favor: 8, trust: 6, flag: "asked_him" } }
+  ]
+},
+
+fb_c3_hesitate_join: fb("第三章 · 高二", "物理竞赛",
+  "你回了一个字：报。\n\n"
+  + "他秒回：明天来找我拿资料。\n\n"
+  + "你盯着屏幕，心跳有点快。\n\n"
+  + "第二天你到办公室的时候，他桌上已经放了一摞打印好的往年真题。\n\n"
+  + "“先做前三套。”他说，“做完再来。”\n\n"
+  + "你点头。抱着那摞卷子出来的时候，觉得比昨天重。",
+  "c3_hallway"),
+
+fb_c3_hesitate_skip: fb("第三章 · 高二", "物理竞赛",
+  "你回：算了，不报了。\n\n"
+  + "他回了一个“嗯”，然后没了。\n\n"
+  + "你把手机扣在枕边，闭上眼。\n\n"
+  + "你告诉自己这样挺好，高三前最后一个轻松的学期。\n\n"
+  + "但第二天上课的时候，你发现他没怎么看你。",
+  "c3_hallway"),
+
+fb_c3_hesitate_ask: fb("第三章 · 高二", "物理竞赛",
+  "你回：老师你希望我报吗。\n\n"
+  + "这次他过了很久才回。\n\n"
+  + "〔🐱 CFBDSIR2149〕\n"
+  + "我希望你自己想清楚。\n\n"
+  + "然后又是一条。\n\n"
+  + "〔🐱 CFBDSIR2149〕\n"
+  + "但你如果问我，我会说报。\n\n"
+  + "你盯着屏幕，笑了一下。\n\n"
+  + "然后你回：那我报。\n\n"
+  + "他回：明天来拿资料。\n\n"
+  + "你抱着手机，脸埋进被子里。",
+  "c3_hallway"),
+
+c3_hallway: {
+  chapter: "第三章 · 高二", title: "走廊擦肩",
+  text: function() {
+    if (state.flags.skip_contest) {
+      return "十一月，课间。\n\n"
+        + "走廊里挤满了人。你从教室出来，迎面撞上韩磊。\n\n"
+        + "他拿着茶瓶，眯着眼看了你两秒才认出来。\n\n"
+        + "“哦，是你。”\n\n"
+        + "他侧身让你过去，没有多说什么。\n\n"
+        + "你走过他身边的时候，忽然想起上周那条没回的短信。\n\n"
+        + "你也说不清自己在想什么。";
+    }
+    if (state.flags.asked_him) {
+      return "十一月，课间。\n\n"
+        + "走廊里挤满了人。你从教室出来，迎面撞上韩磊。\n\n"
+        + "他拿着茶瓶，眯着眼看了你两秒才认出来。\n\n"
+        + "“哦，是你。”\n\n"
+        + "他侧身让你过去。你走过他身边的时候，他忽然说了一句：\n\n"
+        + "“题做了吗。”\n\n"
+        + "你回头。他已经走过去了。\n\n"
+        + "你站在原地，心跳有点快。";
+    }
+    return "十一月，课间。\n\n"
+      + "走廊里挤满了人。你从教室出来，迎面撞上韩磊。\n\n"
+      + "他拿着茶瓶，眯着眼看了你两秒才认出来。\n\n"
+      + "“哦，是你。”\n\n"
+      + "他侧身让你过去。你闻到他身上淡淡的粉笔味。\n\n"
+      + "走廊的窗户开着，冷风灌进来。你打了个哆嗦。";
+  },
+  choices: [
+    { text: "回头看他", next: "fb_c3_hallway_look", effects: { favor: 5 } },
+    { text: "直接走开", next: "fb_c3_hallway_walk", effects: {} },
+    { text: "叫住他：“老师你刚才是不是没认出我？”", next: "fb_c3_hallway_call", effects: { favor: 7, trust: 2 } }
+  ]
+},
+
+fb_c3_hallway_look: fb("第三章 · 高二", "走廊擦肩",
+  "你回头看了他一眼。\n\n"
+  + "他正往办公室方向走，背影在走廊尽头越来越小。有学生跟他打招呼，他点头回应。\n\n"
+  + "你站在原地，直到他拐弯看不见了，才转身回教室。\n\n"
+  + "同桌在门口等你：“你刚才站那儿干嘛？”你摇头。",
+  "c3_midterm"),
+
+fb_c3_hallway_walk: fb("第三章 · 高二", "走廊擦肩",
+  "你直接走开了。\n\n"
+  + "走廊里人来人往，你挤进人群里，把刚才那一瞬间的感觉压下去了。\n\n"
+  + "回到教室，同桌正在抄作业。她抬头看了你一眼：“怎么了？”\n\n"
+  + "“没事。”你坐下，翻开课本。",
+  "c3_midterm"),
+
+fb_c3_hallway_call: fb("第三章 · 高二", "走廊擦肩",
+  "你叫住他。\n\n"
+  + "韩磊回头，眯着眼看你。\n\n"
+  + "“没认出我？”你说。\n\n"
+  + "他愣了一下，然后笑了。\n\n"
+  + "“下次配眼镜。”他挥了挥手，走了。\n\n"
+  + "你站在原地，心跳得很快。",
+  "c3_midterm"),
+
+c3_midterm: {
+  chapter: "第三章 · 高二", title: "期中考试",
+  text: function() {
+    if (state.stress >= 50) {
+      return "十二月，期中考试。\n\n"
+        + "你考砸了。成绩单发下来的时候，你看着上面那几个数字，胸口有点闷。\n\n"
+        + "韩磊把你叫到办公室。他坐在桌前，眯着眼看你的成绩单，看了很久。\n\n"
+        + "窗外在下雨，雨点打在玻璃上，声音很密。\n\n"
+        + "“最近有什么事？”";
+    }
+    return "十二月，期中考试。\n\n"
+      + "你的成绩还算稳定。\n\n"
+      + "韩磊在班上分析试卷。你低头，在草稿纸上画了一个小圈。\n\n"
+      + "窗外的银杏叶黄了，有几片落在窗台上。";
+  },
+  choices: [
+    { text: "坦白压力大", next: "fb_c3_midterm_tell", effects: { favor: 5, trust: 10, stress: -12, flag: "yetan" } },
+    { text: "说最近状态不好", next: "fb_c3_midterm_excuse", effects: { favor: -2, stress: 6 } },
+    { text: "“老师你眯着眼睛看人的时候，很像在笑。”", next: "fb_c3_midterm_tease", effects: { favor: 10, trust: 5 } }
+  ]
+},
+
+fb_c3_midterm_tell: fb("第三章 · 高二", "期中考试",
+  "你说你压力大。\n\n"
+  + "韩磊没有立刻接话。他把成绩单放下，眯着眼看你，很久。\n\n"
+  + "窗外的雨还在下。\n\n"
+  + "“我知道了。”最后他说。\n\n"
+  + "“压力大的时候，来找我。”他顿了一下，“不是以班主任的身份。”\n\n"
+  + "你抬头看他。他已经低下头，翻开了下一份成绩单。",
+  "c3_office"),
+
+fb_c3_midterm_excuse: fb("第三章 · 高二", "期中考试",
+  "你说是状态不好。\n\n"
+  + "韩磊没有拆穿，只是点了点头。\n\n"
+  + "“行。下次注意。”\n\n"
+  + "他把成绩单推回给你。你接过来的时候，他没有松手。\n\n"
+  + "你抬头看他，他正看着你。几秒之后，他松了手。",
+  "c3_office"),
+
+fb_c3_midterm_tease: fb("第三章 · 高二", "期中考试",
+  "你说他眯着眼睛看人的时候很像在笑。\n\n"
+  + "韩磊愣了一下，然后真的笑了——不是平时那种上课的笑，是那种没忍住的笑。\n\n"
+  + "“你倒是会转移话题。”他说。\n\n"
+  + "窗外的雨还在下。你发现他笑的时候，眼角的细纹比平时明显。",
+  "c3_office"),
+
+c3_office: {
+  chapter: "第三章 · 高二", title: "冬天，办公室",
+  text: function() {
+    return "一月，冬天。\n\n"
+      + "办公室的暖气开得很足，窗玻璃上全是雾气。你去找韩磊问题。\n\n"
+      + "他正在往茶瓶里倒水。你站在门口，看着他拧上瓶盖，动作很熟练，像是做过很多次。\n\n"
+      + "他回头看见你，眯眼笑了。\n\n"
+      + "“都看见了？”\n\n"
+      + "你们同时笑出来。但笑完之后，你发现自己心跳得很快。\n\n"
+      + "窗外的天很冷，但你脸上有点热。";
+  },
+  choices: [
+    { text: "“老师你这样真的很搞笑。”", next: "fb_c3_office_funny", effects: { favor: 3, flag: "office_funny" } },
+    { text: "“……有点可爱。”", next: "fb_c3_office_cute", effects: { favor: 7, stress: 4, flag: "office_cute" } },
+    { text: "沉默", next: "fb_c3_office_silent", effects: { trust: 4, flag: "office_silent" } }
+  ]
+},
+
+fb_c3_office_funny: fb("第三章 · 高二", "冬天，办公室",
+  "你说他这样很搞笑。\n\n"
+  + "韩磊挑了挑眉，把瓶子举起来看了看。\n\n"
+  + "“习惯了。”他说，“省得洗杯子。”\n\n"
+  + "你笑了。他也笑了一下，然后坐回桌前，问你哪道题不会。\n\n"
+  + "你走过去，把卷子摊开。窗外有风，玻璃上的雾气轻轻晃了一下。",
+  "c3_newyear"),
+
+fb_c3_office_cute: fb("第三章 · 高二", "冬天，办公室",
+  "你说有点可爱。说完你自己也愣住了。\n\n"
+  + "韩磊的手停在瓶盖上，看了你两秒。\n\n"
+  + "办公室很安静，暖气片在响。\n\n"
+  + "“……去问题吧。”\n\n"
+  + "他低下头，耳朵有点红。你也没再说什么，走过去把卷子摊开。\n\n"
+  + "你讲题的时候，他比平时更安静。",
+  "c3_newyear"),
+
+fb_c3_office_silent: fb("第三章 · 高二", "冬天，办公室",
+  "你什么都没说。\n\n"
+  + "韩磊也没追问。他把瓶子放好，坐回桌前，问你哪道题不会。\n\n"
+  + "你走过去，把卷子摊开。\n\n"
+  + "你们都没有再提刚才的事。但你讲题的时候，他一直在看你，不是看题。",
+  "c3_newyear"),
+
+c3_newyear: {
+  chapter: "第三章 · 高二", title: "元旦",
+  text: function() {
+    return "元旦前，教室里贴了窗花，有人在黑板上画了新年倒计时。\n\n"
+      + "你买了一盒润喉糖。他最近嗓子有点哑，上课的时候偶尔会清一下喉咙。\n\n"
+      + "你把它放在韩磊桌上。他眯着眼看包装。\n\n"
+      + "“我上课太吵了？”";
+  },
+  choices: [
+    { text: "“老师你嗓子哑了。”", next: "fb_c3_newyear_voice", effects: { favor: 7, flag: "gift" } },
+    { text: "写一张贺卡，夹在糖盒里", next: "fb_c3_newyear_card", effects: { favor: 5, trust: 4, flag: "gift" } },
+    { text: "什么都没说，转身走了", next: "fb_c3_newyear_silent", effects: {} }
+  ]
+},
+
+fb_c3_newyear_voice: fb("第三章 · 高二", "元旦",
+  "你说他嗓子哑了。\n\n"
+  + "韩磊拿起那盒糖看了看，然后拆开，取了一颗放进嘴里。\n\n"
+  + "“谢了。”他说，“上课的时候别笑我。”\n\n"
+  + "你点头。他把糖盒放进抽屉，关上。\n\n"
+  + "你转身走了。走到门口的时候，你听见他轻轻咳了一声。",
+  "c3_end"),
+
+fb_c3_newyear_card: fb("第三章 · 高二", "元旦",
+  "你写了一张贺卡夹在糖盒里。\n\n"
+  + "韩磊发现的时候，你正在座位上收拾书包。他拿起贺卡看了很久，然后抬头看了你一眼。\n\n"
+  + "你假装没看见。\n\n"
+  + "下课后，你从书包里翻出课本，发现里面夹着一张纸条。\n\n"
+  + "上面写着：“谢谢。少熬夜。”",
+  "c3_end"),
+
+fb_c3_newyear_silent: fb("第三章 · 高二", "元旦",
+  "你什么都没说，转身走了。\n\n"
+  + "第二天上课，你看见那盒糖放在讲台上，已经拆开了。\n\n"
+  + "韩磊讲课的时候，嗓子比昨天好了一点。\n\n"
+  + "你没敢看他。但他讲完最后一道题，扫了一眼教室，看的是你这边。",
+  "c3_end"),
+
+c3_end: {
+  chapter: "第三章 · 高二", title: "章末",
+  text: function() {
+    var base = "寒假前最后一节课。\n\n"
+      + "韩磊宣布寒假注意事项。讲完最后一句，他收拾教案的动作比平时慢。\n\n";
+    if (state.flags.office_cute) {
+      base += "你想起那天办公室，你说他有点可爱。\n\n"
+        + "他耳朵红了。\n\n"
+        + "你到现在都记得那个画面。\n\n";
+    } else if (state.flags.office_funny) {
+      base += "你想起那天办公室，你笑他茶瓶装水。\n\n"
+        + "他说习惯了。\n\n"
+        + "现在想起来，还是觉得好笑。\n\n";
+    } else if (state.flags.office_silent) {
+      base += "你想起那天办公室，你什么都没说。\n\n"
+        + "有些话没说出口，就留在了那天。\n\n";
+    }
+    base += "全班都在收拾东西。你也在收拾。\n\n"
+      + "但你收拾得很慢。\n\n"
+      + "因为你不想让他先走。";
+    return base;
+  },
+  choices: [{ text: "进入第四章", next: "c4_oath" }]
+},
+
+// ==================== 第四章 ====================
+c4_oath: {
+  chapter: "第四章 · 高三", title: "百日誓师",
+  text: function() {
+    return "三月，百日誓师。\n\n"
+      + "操场上站满了人。红旗在风里猎猎作响，主席台上的音响有点破音。\n\n"
+      + "班主任要选一个学生代表上台发言。韩磊站在队伍前面，眯着眼扫过人群。\n\n"
+      + "阳光很亮，他抬手遮了一下。\n\n"
+      + "他的视线停在了你这里。";
+  },
+  choices: [
+    { text: "主动举手", next: "fb_c4_oath_raise", effects: { favor: 5, study: 8 } },
+    { text: "被点名", next: "fb_c4_oath_pointed", effects: { trust: 4, stress: 4 } },
+    { text: "低头，假装没看见", next: "fb_c4_oath_hide", effects: {} }
+  ]
+},
+
+fb_c4_oath_raise: fb("第四章 · 高三", "百日誓师",
+  "你举了手。\n\n"
+  + "韩磊的视线停在你身上，点了点头。\n\n"
+  + "你走上台的时候，经过他身边，他低声说了一句“别紧张”。\n\n"
+  + "台上风很大。你握着话筒，看着下面黑压压的人群，突然没那么怕了。\n\n"
+  + "你讲完下台的时候，韩磊站在台边等你。他没说话，只是冲你点了一下头。",
+  "c4_peer_intro"),
+
+fb_c4_oath_pointed: fb("第四章 · 高三", "百日誓师",
+  "他点了你的名字。\n\n"
+  + "你站起来的时候，全班都在看你。韩磊站在队伍前面，眯着眼，像是想通过眼神告诉你什么。\n\n"
+  + "你走上台，声音有点抖，但还是讲完了。\n\n"
+  + "下台的时候，你从他面前经过。他说了句“不错”，声音很轻，只有你听得见。",
+  "c4_peer_intro"),
+
+fb_c4_oath_hide: fb("第四章 · 高三", "百日誓师",
+  "你低下了头。\n\n"
+  + "韩磊的视线在你这里停了一秒，然后移开了。他点了另一个同学的名字。\n\n"
+  + "你松了口气，又有点说不上来的感觉。\n\n"
+  + "散会的时候，你从人群里挤过去。韩磊站在操场边，正在跟别的老师说话，没看你。",
+  "c4_peer_intro"),
+
+c4_peer_intro: {
+  chapter: "第四章 · 高三", title: "四月",
+  text: function() {
+    return "四月。\n\n"
+      + "班里来了个转学生，叫陈怀敛。和你同桌。\n\n"
+      + "人很好相处，笑起来眼睛弯弯的。第一天就借你笔，第二天就给你带早餐。\n\n"
+      + "你没有拒绝。\n\n"
+      + "你知道自己在做什么。你只是觉得，如果能把心思放在别的地方，也许会好受一点。";
+  },
+  choices: [
+    { text: "接受陈怀敛的示好", next: "c4_peer_accept", effects: { favor: -5, stress: -6, flag: "peer" } },
+    { text: "保持距离", next: "c4_peer_reject", effects: { favor: 3, stress: 3 } }
+  ]
+},
+
+c4_peer_accept: {
+  chapter: "第四章 · 高三", title: "四月",
+  text: function() {
+    return "你没有拒绝陈怀敛。\n\n"
+      + "周末一起去图书馆，晚自习一起做题，放学一起走到校门口。\n\n"
+      + "陈怀敛很会照顾人，会记得你爱喝什么，会陪你聊到很晚。\n\n"
+      + "你和陈怀敛在一起的时候，会笑。\n\n"
+      + "但笑完之后，你还是会不自觉地往讲台那边看一眼。\n\n"
+      + "有一天下午，韩磊找你去办公室。";
+  },
+  choices: [
+    { text: "去办公室", next: "c4_han_confronts", effects: {} }
+  ]
+},
+
+c4_peer_reject: {
+  chapter: "第四章 · 高三", title: "四月",
+  text: function() {
+    return "你婉拒了陈怀敛。\n\n"
+      + "“我高三想专心学习。”你说。\n\n"
+      + "陈怀敛笑了笑，说没关系。之后也还是朋友。\n\n"
+      + "那天晚上你躺在宿舍床上，忽然松了一口气。\n\n"
+      + "你告诉自己，这只是因为你不想分心。\n\n"
+      + "但你心里知道，还有一个原因，你不敢说出来。";
+  },
+  choices: [
+    { text: "继续", next: "c4_month", effects: {} }
+  ]
+},
+
+c4_han_confronts: {
+  chapter: "第四章 · 高三", title: "办公室",
+  text: function() {
+    var trust = state.trust;
+    var fav = state.favor;
+    var base = "办公室里只有他一个人。窗户开着，四月的风把窗帘吹起来一角。\n\n"
+      + "韩磊坐在桌前，没有批作业。他面前放着一杯茶——真茶，你能闻见茉莉花的味道。\n\n"
+      + "“最近和陈怀敛走得挺近。”他说。语气很平。\n\n";
+    if (fav >= 60 && trust >= 50) {
+      base += "“高三了。”他继续说，“你自己心里有数。”\n\n"
+        + "他抬起头看你。眼神里有种你从没见过的东西——不是生气，更像是……失望。\n\n"
+        + "“有些事，等高考结束再说。”\n\n"
+        + "他顿了很久。\n\n"
+        + "“别在这个时候。”他说，声音比平时低，“别在这个时候。”";
+    } else if (fav >= 40) {
+      base += "“高三最后一段时间。”他说，“别分心。”\n\n"
+        + "你点头。\n\n"
+        + "他看着你，像是想说什么，最后只是拿起茶杯喝了一口。\n\n"
+        + "“回去吧。”";
+    } else {
+      base += "“高三最后一段时间。”他说，“把心思放在学习上。”\n\n"
+        + "你点头。\n\n"
+        + "他低头继续批作业，不再看你。\n\n"
+        + "你走出办公室的时候，回头看了一眼。他正看着窗外，不知道在想什么。";
+    }
+    return base;
+  },
+  choices: [
+    { text: "答应他，和陈怀敛保持距离", next: "fb_c4_confront_agree", effects: { favor: 8, trust: 4, stress: 4 } },
+    { text: "什么都没说，转身走了", next: "fb_c4_confront_silent", effects: { favor: 3, stress: 6 } },
+    { text: "“老师你为什么管这个。”", next: "fb_c4_confront_ask", effects: { favor: 10, trust: 5, stress: 8 } }
+  ]
+},
+
+fb_c4_confront_agree: fb("第四章 · 高三", "办公室",
+  "你答应了。\n\n"
+  + "从那天起，你和陈怀敛恢复了普通同学的关系。\n\n"
+  + "陈怀敛没问为什么。他只是笑了笑，说“高三加油”。\n\n"
+  + "你点头。转身的时候，你看见办公室的灯还亮着。\n\n"
+  + "你没敢多看。",
+  "c4_month"),
+
+fb_c4_confront_silent: fb("第四章 · 高三", "办公室",
+  "你什么都没说。\n\n"
+  + "转身走了。走到门口的时候，你听见他在你身后说了一句什么。\n\n"
+  + "你没听清。也没有回头。\n\n"
+  + "走廊里很安静，只有你一个人的脚步声。\n\n"
+  + "那天晚上你在书桌前坐了很久，一道题都没做出来。",
+  "c4_month"),
+
+fb_c4_confront_ask: fb("第四章 · 高三", "办公室",
+  "你问他为什么管这个。\n\n"
+  + "韩磊没有立刻回答。\n\n"
+  + "他放下手里的杯子，看了你很久。\n\n"
+  + "“因为我是你班主任。”他说。\n\n"
+  + "“仅此而已？”\n\n"
+  + "他没答。\n\n"
+  + "办公室很安静。窗外的风把树叶吹得沙沙响。\n\n"
+  + "最后他说：“回去上课。”\n\n"
+  + "你转身走了。你没看见他在你转身之后，抬手揉了揉眼睛。",
+  "c4_month"),
+
+c4_month: {
+  chapter: "第四章 · 高三", title: "高考前最后一个月",
+  text: function() {
+    return "五月，教室里的倒计时牌每天都在变。\n\n"
+      + "桌上堆着做不完的卷子，空气里全是油墨和汗水的味道。\n\n"
+      + "韩磊的课还是一样。他讲完一个知识点，在黑板上写下一行公式，转身扫了一眼教室。\n\n"
+      + "但他的笑比以前少了。\n\n"
+      + "有一天晚自习，他走到你桌边，放下一张纸条。\n\n"
+      + "“压力别太大。”\n\n"
+      + "字迹很潦草。";
+  },
+  choices: [
+    { text: "专注学习", next: "fb_c4_month_study", effects: { study: 12, stress: 4 } },
+    { text: "课后找他", next: "fb_c4_month_talk", effects: { favor: 7, stress: -6 } },
+    { text: "把纸条收起来，什么都没做", next: "fb_c4_month_quiet", effects: { favor: 3, stress: 2 } }
+  ]
+},
+
+fb_c4_month_study: fb("第四章 · 高三", "高考前最后一个月",
+  "你埋头做题。\n\n"
+  + "晚自习的教室很安静，只有笔尖划纸的声音。韩磊在教室里转了一圈又一圈，路过你的时候，你感觉到他的脚步慢了一下。\n\n"
+  + "他没有停下来。\n\n"
+  + "你把那张纸条夹进了课本里。",
+  "c4_photo"),
+
+fb_c4_month_talk: fb("第四章 · 高三", "高考前最后一个月",
+  "你去找他谈心。\n\n"
+  + "韩磊把你带到走廊尽头的窗户边，那里没人。你们并肩站着，看着外面的夜空。\n\n"
+  + "“怕什么？”他问。\n\n"
+  + "你想了想，说“怕考不好”。\n\n"
+  + "他沉默了一会儿。\n\n"
+  + "“考不好也没关系。”他说。\n\n"
+  + "你转头看他。他没有看你，只是看着窗外。",
+  "c4_photo"),
+
+fb_c4_month_quiet: fb("第四章 · 高三", "高考前最后一个月",
+  "你把纸条收进了笔记本夹层。\n\n"
+  + "那一晚你没有去找他。你只是一直做题，做完一张又一张。\n\n"
+  + "晚自习结束的时候，你起身收拾书包，发现讲台上还亮着一盏灯。\n\n"
+  + "韩磊坐在那里，低头批卷子，没注意到你。\n\n"
+  + "你站了两秒，走了。",
+  "c4_photo"),
+
+c4_photo: {
+  chapter: "第四章 · 高三", title: "毕业照 · 集体",
+  text: function() {
+    return "六月，拍毕业照。\n\n"
+      + "那天天气很好，天空蓝得没有一丝云。全班站在操场上，摄影师在调整机位。\n\n"
+      + "“班主任站中间。”\n\n"
+      + "韩磊眯着眼走过来。他今天没拿茶瓶，白衬衫的扣子扣到了最上面一颗。\n\n"
+      + "你站在队伍里，看着他的位置。\n\n"
+      + "阳光很刺眼。";
+  },
+  choices: [
+    { text: "站到他旁边", next: "c4_photo_beside", effects: { favor: 7, flag: "photo_beside" } },
+    { text: "站到远处", next: "c4_photo_far", effects: { flag: "photo_far" } }
+  ]
+},
+
+c4_photo_beside: {
+  chapter: "第四章 · 高三", title: "毕业照 · 集体",
+  text: function() {
+    return "你走到他旁边站定。\n\n"
+      + "摄影师喊“看镜头”的时候，你感觉到他的肩膀离你很近，但始终没有碰到。\n\n"
+      + "快门响的那一瞬间，你听见他轻轻呼了一口气。\n\n"
+      + "集体照拍完了。人群散开，有人在互相拍照，有人在签名。\n\n"
+      + "韩磊正要往教学楼那边走。\n\n"
+      + "你站在原地，看着他。";
+  },
+  choices: [
+    { text: "继续", next: "c4_photo_after", isContinue: true }
+  ]
+},
+
+c4_photo_far: {
+  chapter: "第四章 · 高三", title: "毕业照 · 集体",
+  text: function() {
+    return "你站在了队伍边上。\n\n"
+      + "摄影师喊“看镜头”的时候，你看着前面。镜头里全是人的脑袋。\n\n"
+      + "快门响了。\n\n"
+      + "集体照拍完了。人群散开，有人在互相拍照，有人在签名。\n\n"
+      + "韩磊正要往教学楼那边走。\n\n"
+      + "你站在原地，看着他。\n\n"
+      + "照片出来以后，你在人群里找了很久才找到自己，也找到了他——他站在正中间，眯着眼，看不太清表情。\n\n"
+      + "但你还没有单独跟他说过一句话。";
+  },
+  choices: [
+    { text: "继续", next: "c4_photo_after", isContinue: true }
+  ]
+},
+
+c4_photo_after: {
+  chapter: "第四章 · 高三", title: "毕业照 · 要不要单独拍",
+  text: function() {
+    var base = "你站在操场上。\n\n"
+      + "远处有同学在喊你过去合影。你摆了摆手。\n\n"
+      + "韩磊走到教学楼门口，停下了。他回头看了一眼操场，像是在找什么人。\n\n";
+    if (state.flags.photo_beside) {
+      base += "他的视线扫过人群，在你这里停了一下。\n\n";
+    } else {
+      base += "他的视线扫过人群。你没看清他有没有看你。\n\n";
+    }
+    base += "你忽然想走过去，问他能不能单独拍一张。";
+    return base;
+  },
+  choices: [
+    { text: "走过去，问他能不能单独合影", next: "fb_c4_photo_alone_yes", effects: { favor: 8, trust: 6, flag: "photo_alone" } },
+    { text: "算了，转身离开", next: "fb_c4_photo_alone_no", effects: {} }
+  ]
+},
+
+fb_c4_photo_alone_yes: fb("第四章 · 高三", "毕业照 · 单独合影",
+  "你走过去。\n\n"
+  + "韩磊看着你走近，没说话。\n\n"
+  + "“老师。”你说，“能拍一张吗。”\n\n"
+  + "他愣了一下，然后点了点头。\n\n"
+  + "你们站在教学楼门口，隔了半个拳头的距离。有路过的同学帮你们拍。\n\n"
+  + "摄影师喊“看镜头”的时候，你听见自己的心跳。\n\n"
+  + "快门响的时候，他忽然往你这边靠了一点。很轻，几乎察觉不到。\n\n"
+  + "拍完之后他退开半步，像是什么都没发生。\n\n"
+  + "“早点回去休息。”他说完转身走了。\n\n"
+  + "你站在原地，看着手机里的照片。他眯着眼，笑了一下。",
+  "c4_night"),
+
+fb_c4_photo_alone_no: fb("第四章 · 高三", "毕业照 · 单独合影",
+  "你没走过去。\n\n"
+  + "你站在原地，看着他拐进教学楼。\n\n"
+  + "有同学过来拉你去合影，你跟着走了。\n\n"
+  + "那天你拍了很多张照片，但没有一张里有他。\n\n"
+  + "晚上回家翻相册的时候，你忽然想起他回头看你那一眼。\n\n"
+  + "也许他是在等你。\n\n"
+  + "也许不是。\n\n"
+  + "你把手机放在桌上，没有再看。",
+  "c4_night"),
+
+c4_night: {
+  chapter: "第四章 · 高三", title: "高考前一晚",
+  text: function() {
+    var base = "六月六日，高考前一晚。\n\n"
+      + "你坐在书桌前，桌上摊着最后一份复习资料，但一个字都看不进去。\n\n"
+      + "窗外很安静，偶尔有车经过。";
+    if (state.flags.photo_alone) {
+      base += "手机亮了一下。你打开相册，翻到白天那张照片。\n\n"
+        + "他眯着眼，笑了一下。\n\n"
+        + "你把照片放大，看了很久。\n\n"
+        + "然后退出相册，把手机扣在桌上。\n\n";
+    } else if (state.flags.photo_beside) {
+      base += "你想起白天拍集体照的时候，他站在你旁边。\n\n"
+        + "他的肩膀离你很近，但始终没有碰到。\n\n";
+    } else if (state.flags.photo_far) {
+      base += "你想起白天拍集体照的时候，你站在队伍边上。\n\n"
+        + "他站在正中间，你看不太清他的表情。\n\n";
+    }
+    base += "手机震了一下。\n\n"
+      + "〔🐱 CFBDSIR2149〕\n"
+      + "早点睡。明天正常发挥就好。\n\n"
+      + "你盯着屏幕看了很久。";
+    return base;
+  },
+  choices: [
+    { text: "回复“谢谢”", next: "fb_c4_night_thanks", effects: { favor: 3 } },
+    { text: "回复“你也是”", next: "fb_c4_night_same", effects: { favor: 4 } },
+    { text: "打电话过去", next: "fb_c4_night_call", effects: { favor: 7, stress: -6 } },
+    { text: "不回复", next: "fb_c4_night_none", effects: {} }
+  ]
+},
+
+fb_c4_night_thanks: fb("第四章 · 高三", "高考前一晚",
+  "你回了“谢谢”。\n\n"
+  + "他很快回了一个“嗯”。\n\n"
+  + "你盯着屏幕看了一会儿，放下手机。窗外很安静。\n\n"
+  + "你把复习资料合上，关灯，躺下。闭眼之前，你又看了一眼手机。屏幕已经暗了。",
+  "c4_grad"),
+
+fb_c4_night_same: fb("第四章 · 高三", "高考前一晚",
+  "你回了“你也是”。\n\n"
+  + "他没有再回。\n\n"
+  + "你把手机扣在桌上，闭上眼。过了很久，你又拿起来看了一眼，屏幕暗着。\n\n"
+  + "你把手机放回桌上，翻身背对着它。",
+  "c4_grad"),
+
+fb_c4_night_call: fb("第四章 · 高三", "高考前一晚",
+  "你拨了过去。\n\n"
+  + "响了两声他就接了。电话那头很安静，你听见他轻轻地“喂”了一声。\n\n"
+  + "你们没有说太多，只是互相说了句“加油”。\n\n"
+  + "挂了电话之后，你发现自己的心跳得很快。\n\n"
+  + "你把手机放在枕边，闭上眼。这一次你很快就睡着了。",
+  "c4_grad"),
+
+fb_c4_night_none: fb("第四章 · 高三", "高考前一晚",
+  "你没有回复。\n\n"
+  + "你把手机放下，继续看书。但那一晚，你看了很多遍手机屏幕，确认它真的没有亮。\n\n"
+  + "半夜的时候，你忍不住打开消息，看到他发的那句“早点睡”。\n\n"
+  + "你盯着看了很久，最后把手机翻过去，扣在桌上。",
+  "c4_grad"),
+
+c4_grad: {
+  chapter: "第四章 · 高三", title: "毕业典礼",
+  text: function() {
+    return "六月，毕业典礼。\n\n"
+      + "礼堂里很吵，有人在哭，有人在拍照，有人在签名。你从人群里挤出来，走到校门口。\n\n"
+      + "天色已经暗了，路灯亮起来，飞虫在灯光下打转。\n\n"
+      + "韩磊站在校门口。他眯着眼看你，没有说别的。\n\n"
+      + "他只是说：“路上小心。”";
+  },
+  choices: [
+    { text: "走过去，告诉他你的心意", next: "fb_c4_grad_confess", effects: { favor: 13, flag: "confess" } },
+    { text: "约定以后再见", next: "fb_c4_grad_promise", effects: { trust: 8, flag: "promise" } },
+    { text: "默默离开", next: "fb_c4_grad_leave", effects: {} }
+  ]
+},
+
+fb_c4_grad_confess: fb("第四章 · 高三", "毕业典礼",
+  "你走过去。\n\n"
+  + "韩磊看着你，眯着眼睛。你说了。说完之后你们都没有动。\n\n"
+  + "风从校门口吹过来，带着夏天的味道。远处还有学生在拍照，笑声一阵一阵。\n\n"
+  + "他沉默了很久。\n\n"
+  + "“我知道了。”他说。\n\n"
+  + "你没有再说什么，转身走了。走了几步，你听见他在你身后说：“路上小心。”",
+  "ending"),
+
+fb_c4_grad_promise: fb("第四章 · 高三", "毕业典礼",
+  "你说以后再见。\n\n"
+  + "韩磊点了点头。\n\n"
+  + "“好。”他说，“以后再见。”\n\n"
+  + "你们都没有说明白那个“以后”是什么意思。\n\n"
+  + "你转身走了。走到路口的时候，你回头看了一眼——他还站在校门口。",
+  "ending"),
+
+fb_c4_grad_leave: fb("第四章 · 高三", "毕业典礼",
+  "你转身走了。\n\n"
+  + "走出几步，你回头看了一眼——他还站在原地。\n\n"
+  + "你继续往前走，没有回头。\n\n"
+  + "路灯把你的影子拉得很长。你走到路口，红灯亮了，你停下来等。风从背后吹过来，你才发现自己有点想哭。",
+  "ending"),
+
+// ==================== 结局分发 ====================
+ending: {
+  chapter: "", title: "",
+  text: function() { return ""; },
+  choices: [],
+  resolve: function() {
+    var  = state;
+    if (.stress >= 55 && !.flags.yetan) return "ending_breakdown";
+    if (.favor >= 90 && .study < 30) return "ending_deflect";
+    var unlocked = getUnlockedEndings();
+    if (unlocked["ending_he"] && .favor >= 80 && .trust >= 50 && .study >= 40 && .flags.confess) return "ending_hidden";
+    if (.favor >= 60 && .trust >= 50 && .study >= 35 && (.flags.confess || .flags.promise)) return "ending_he";
+    if (.favor >= 45 && .trust >= 35 && .study >= 30) return "ending_ne";
+    if (.favor < 30 || .trust < 30) return "ending_be";
+    return "ending_ne";
+  }
+},
+
+ending_he: {
+  chapter: "结局", title: "同频共振",
+  text: function() {
+    return "一月，寒假。\n\n"
+      + "你从大学回来。行李箱还没收拾，就出了门。\n\n"
+      + "学校门口那家文具店还开着。你站在马路对面，看着放学的人流从校门里涌出来。\n\n"
+      + "然后，你看见了那个熟悉的身影。\n\n"
+      + "白衬衫，袖口卷到手肘。他没戴眼镜，眯着眼，像是在找什么人。\n\n"
+      + "他看到了你。\n\n"
+      + "你走过去。他也看着你，没有动。\n\n"
+      + "然后他笑了。\n\n"
+      + "——\n\n"
+      + "你们沿着学校外面那条路走。冬天风很冷，路边的小店亮着暖黄的灯。\n\n"
+      + "“以前我是你的老师。”他说。\n\n"
+      + "你点头。\n\n"
+      + "“现在你已经毕业了。”\n\n"
+      + "他停下来，转头看你。眯着眼睛，笑了一下。\n\n"
+      + "“我可以只是韩磊吗？”\n\n"
+      + "你没回答。\n\n"
+      + "但你没走。";
+  },
+  choices: [{ text: "继续", next: "epilogue_he", isContinue: true }]
+},
+
+epilogue_he: {
+  chapter: "尾声", title: "一年后",
+  text: function() {
+    return "一年后。\n\n"
+      + "你大二。\n\n"
+      + "寒假回家，你坐在高中门口的奶茶店里，等他下课。\n\n"
+      + "玻璃窗外，雪刚停。操场上有学生在打雪仗，笑声一阵一阵飘过来。\n\n"
+      + "门被推开。他进来，拍了拍肩膀上的雪，在你对面坐下。\n\n"
+      + "“外面冷。”他说。\n\n"
+      + "你把热奶茶推过去，他没接，只是看着你。\n\n"
+      + "“看什么。”\n\n"
+      + "“没什么。”\n\n"
+      + "他眯着眼睛笑了一下，终于接过奶茶。\n\n"
+      + "——\n\n"
+      + "有一次你问他，那三年他是不是早就知道了。\n\n"
+      + "他眯着眼想了想。\n\n"
+      + "“知道什么。”\n\n"
+      + "“我。”\n\n"
+      + "他没回答。他拿起奶茶喝了一口。\n\n"
+      + "“你自己想。”他说。\n\n"
+      + "风吹过来，玻璃门响了一下。\n\n"
+      + "你看见他耳朵红了。\n\n"
+      + "算了。不用回答了。";
+  },
+  choices: [{ text: "回到主菜单", next: "goto_menu" }]
+},
+
+ending_ne: {
+  chapter: "结局", title: "良师益友",
+  text: function() {
+    return "你考上了大学。\n\n"
+      + "开学前，韩磊来送你。他站在车站，手里拿着茶瓶，眯着眼看你。\n\n"
+      + "车站里人来人往，广播在报车次。\n\n"
+      + "“到了那边，有事可以找我。”\n\n"
+      + "你点点头。他笑了一下，没有说更多。\n\n"
+      + "你们一直保持着联系。有时候是短信，有时候是电话。他偶尔会问你物理题，你偶尔会问他最近在喝什么茶。\n\n"
+      + "没有更多了。但也没有更少。";
+  },
+  choices: [{ text: "回到主菜单", next: "goto_menu" }]
+},
+
+ending_be: {
+  chapter: "结局", title: "失焦",
+  text: function() {
+    return "毕业后，你们再无联系。\n\n"
+      + "物理课本里夹着一张没送出去的贺卡。上面写了什么，你已经忘了。\n\n"
+      + "只是偶尔在某个九月，你还会想起那个眯着眼睛笑的人。\n\n"
+      + "和他那瓶永远装着白开水的茶。";
+  },
+  choices: [{ text: "回到主菜单", next: "goto_menu" }]
+},
+
+ending_deflect: {
+  chapter: "结局", title: "偏折光",
+  text: function() {
+    return "高考失利。你选择复读。\n\n"
+      + "转去了另一所学校。走的那天，韩磊没有来送你。\n\n"
+      + "——\n\n"
+      + "十月的一个晚上，你在复读学校的自习室做题。\n\n"
+      + "手机亮了一下。\n\n"
+      + "〔🐱 CFBDSIR2149〕\n"
+      + "在几楼。\n\n"
+      + "你愣了一下，回：三楼。\n\n"
+      + "十分钟后，他出现在自习室门口。手里拎着一袋橘子，还有一瓶茶。\n\n"
+      + "“路过。”他说。\n\n"
+      + "复读学校的教学楼，离他的学校坐车要一个小时。\n\n"
+      + "你没拆穿。他也没解释。\n\n"
+      + "他在你对面坐下，把橘子放在桌上，翻开自己带来的卷子。\n\n"
+      + "“做题。”他说，“不会的问我。”\n\n"
+      + "那天晚上，自习室的灯亮到十一点。\n\n"
+      + "之后每个周五，他都来。\n\n"
+      + "“我会在原来的轨道上，”有一次他忽然说，“等你找到自己的方向。”\n\n"
+      + "你抬头看他。他没看你，正低头算一道题。\n\n"
+      + "但你看见他的耳朵红了。";
+  },
+  choices: [{ text: "回到主菜单", next: "goto_menu" }]
+},
+
+ending_hidden: {
+  chapter: "隐藏结局", title: "薛定谔的猫",
+  text: function() {
+    return "毕业那晚，你走出校门。\n\n"
+      + "身后传来脚步声。\n\n"
+      + "“等一下。”\n\n"
+      + "你回头。韩磊站在路灯下。他没戴眼镜，眯着眼看你，像是终于决定打开一个盒子。\n\n"
+      + "飞虫在灯光下打转，他的影子被拉得很长。\n\n"
+      + "“有些答案，”他说，“要等盒子打开才知道。”\n\n"
+      + "他走近了一步。\n\n"
+      + "“我已经等三年了。”";
+  },
+  choices: [{ text: "回到主菜单", next: "goto_menu" }]
+},
+
+ending_breakdown: {
+  chapter: "结局", title: "临界崩溃",
+  text: function() {
+    return "你没能撑到高考。\n\n"
+      + "压力太大了。你休学了。\n\n"
+      + "后来你听说，韩磊那学期请了很久的假。再后来，他调去了别的学校。\n\n"
+      + "你没有再见过他。\n\n"
+      + "有时候你会想，如果那天晚自习，你说了实话，会怎样。\n\n"
+      + "但那个盒子，已经关上了。";
+  },
+  choices: [{ text: "回到主菜单", next: "goto_menu" }]
+},
+
+goto_menu: {
+  chapter: "", title: "",
+  text: function() { return ""; },
+  choices: [],
+  resolve: function() {
+    clearSave();
+    resetState();
+    showScreen("menu");
+    refreshMenu();
+    return "__halt__";
+  }
+}
+
+};
+
+// ==================================================
+// 打字机（requestAnimationFrame 版）
+// ==================================================
+var typingRAF = null;
+var typingText = "";
+var typingStartTime = 0;
+var TYPING_SPEED = 22; // 每字符毫秒
+
+function stopTyping() {
+  if (typingRAF) {
+    cancelAnimationFrame(typingRAF);
+    typingRAF = null;
+  }
+}
+
+function typeWriter(text) {
+  var el = document.getElementById("scene-text");
+  stopTyping();
+  el.textContent = "";
+  el.onclick = null;
+  typingText = text;
+  typingStartTime = performance.now();
+  var total = text.length;
+
+  function step(now) {
+    var elapsed = now - typingStartTime;
+    var shown = Math.floor(elapsed / TYPING_SPEED);
+    if (shown >= total) {
+      el.textContent = text;
+      typingRAF = null;
+      return;
+    }
+    if (shown !== el.textContent.length) {
+      el.textContent = text.substring(0, shown);
+    }
+    typingRAF = requestAnimationFrame(step);
+  }
+  typingRAF = requestAnimationFrame(step);
+
+  el.onclick = function() {
+    if (typingRAF) {
+      stopTyping();
+      el.textContent = text;
+    }
+  };
+}
+
+// ==================================================
+// 跳转
+// ==================================================
+var chapterTransitionLock = false;
+
+function goto(sceneId) {
+  var scene = scenes[sceneId];
+  if (!scene) { console.warn("未知场景：", sceneId); return; }
+  if (scene.resolve) {
+    var next = scene.resolve();
+    if (next === "__halt__") return;
+    goto(next);
+    return;
+  }
+
+  var prevScene = scenes[state.scene];
+  var prevChapter = prevScene ? (prevScene.chapter || "") : "";
+  var newChapter = scene.chapter || "";
+  var isMainChapter = newChapter.indexOf("序章") === 0
+    || newChapter.indexOf("第一章") === 0
+    || newChapter.indexOf("第二章") === 0
+    || newChapter.indexOf("第三章") === 0
+    || newChapter.indexOf("第四章") === 0
+    || newChapter.indexOf("结局") === 0
+    || newChapter.indexOf("隐藏结局") === 0
+    || newChapter.indexOf("尾声") === 0;
+  var isChapterChange = isMainChapter && newChapter !== prevChapter && prevChapter !== "";
+
+  state.scene = sceneId;
+  if (sceneId.indexOf("ending_") === 0) unlockEnding(sceneId);
+  saveGame();
+  showScreen("game");
+
+  if (isChapterChange && !chapterTransitionLock) {
+    chapterTransitionLock = true;
+    var trans = document.getElementById("chapter-transition");
+    trans.querySelector(".text").textContent = newChapter;
+    trans.classList.add("show");
+    stopTyping();
+    setTimeout(function() {
+      render();
+      setTimeout(function() {
+        trans.classList.remove("show");
+        chapterTransitionLock = false;
+      }, 700);
+    }, 800);
+  } else {
+    render();
+  }
+}
+
+// ==================================================
+// 渲染
+// ==================================================
+function render() {
+  var scene = scenes[state.scene];
+  if (!scene) return;
+
+  var gameCard = document.querySelector("#screen-game .game-card");
+  gameCard.classList.remove("fade-in");
+  void gameCard.offsetWidth;
+  gameCard.classList.add("fade-in");
+
+  document.getElementById("chapter-label").textContent = scene.chapter || "";
+  document.getElementById("scene-title").textContent = scene.title || "";
+
+  var raw = typeof scene.text === "function" ? scene.text() : (scene.text || "");
+  typeWriter(raw);
+
+  document.getElementById("s-favor").textContent = "心动 " + state.favor;
+  document.getElementById("s-trust").textContent = "信赖 " + state.trust;
+  document.getElementById("s-study").textContent = "学业 " + state.study;
+  document.getElementById("s-stress").textContent = "压力 " + state.stress;
+
+  document.getElementById("progress-fill").style.width = getProgress(state.scene) + "%";
+
+  var seasonBand = document.getElementById("season-band");
+  seasonBand.className = getSeason(scene.chapter);
+
+  var choicesEl = document.getElementById("choices");
+  choicesEl.innerHTML = "";
+  var choices = typeof scene.choices === "function" ? scene.choices() : (scene.choices || []);
+  choices.forEach(function(c) {
+    var btn = document.createElement("button");
+    btn.className = "choice-btn" + (c.isContinue ? " continue-btn" : "");
+    btn.type = "button";
+    btn.textContent = c.text;
+    btn.onclick = function() {
+      stopTyping();
+      if (c.effects) applyEffects(c.effects);
+      if (c.next) goto(c.next);
+    };
+    choicesEl.appendChild(btn);
+  });
+}
+
+// ==================================================
+// 主菜单刷新
+// ==================================================
+function refreshMenu() {
+  var btnContinue = document.getElementById("btn-continue");
+  var badge = document.getElementById("badge-endings");
+  btnContinue.disabled = !hasSave();
+  badge.textContent = countUnlocked() + " / " + ENDING_DEFS.length;
+  renderEndingsList();
+}
+
+function renderEndingsList() {
+  var unlocked = getUnlockedEndings();
+  var listEl = document.getElementById("endings-list");
+  var progressEl = document.getElementById("endings-progress");
+  var n = 0;
+  listEl.innerHTML = "";
+  ENDING_DEFS.forEach(function(e) {
+    var isUnlocked = !!unlocked[e.id];
+    if (isUnlocked) n++;
+    var item = document.createElement("div");
+    item.className = "ending-item " + (isUnlocked ? "unlocked" : "locked");
+    var nameSpan = document.createElement("span");
+    nameSpan.className = "name";
+    if (isUnlocked) {
+      nameSpan.innerHTML = '<span class="icon">' + e.icon + '</span>' + e.name;
+    } else {
+      nameSpan.textContent = "？ ？ ？";
+    }
+    var statusSpan = document.createElement("span");
+    statusSpan.className = "status";
+    statusSpan.textContent = isUnlocked ? "已解锁" : "未解锁";
+    item.appendChild(nameSpan);
+    item.appendChild(statusSpan);
+    listEl.appendChild(item);
+  });
+  progressEl.textContent = "已解锁 " + n + " / " + ENDING_DEFS.length;
+}
+
+// ==================================================
+// 主题
+// ==================================================
+function initTheme() {
+  var body = document.body;
+  var btns = document.querySelectorAll(".theme-toggle-global");
+  var saved = storage.get(THEME_KEY);
+  function applyTheme(theme) {
+    if (theme === "night") {
+      body.classList.remove("day"); body.classList.add("night");
+      btns.forEach(function(b) { b.textContent = "☀ 昼"; });
+    } else {
+      body.classList.remove("night"); body.classList.add("day");
+      btns.forEach(function(b) { b.textContent = "☾ 夜"; });
+    }
+  }
+  applyTheme(saved === "night" ? "night" : "day");
+  btns.forEach(function(b) {
+    b.addEventListener("click", function() {
+      if (body.classList.contains("day")) {
+        applyTheme("night"); storage.set(THEME_KEY, "night");
+      } else {
+        applyTheme("day"); storage.set(THEME_KEY, "day");
+      }
+    });
+  });
+}
+
+// ==================================================
+// 背景飘落：物理符号
+// ==================================================
+function initSnow() {
+  var container = document.getElementById("snow-container");
+  if (!container) return;
+  container.innerHTML = "";
+  var count = 32;
+  var symbols = ["∫", "∂", "π", "Δ", "Σ", "λ", "θ", "μ", "ω", "φ", "∮", "∇", "∞", "≈", "±", "√"];
+  for (var i = 0; i < count; i++) {
+    var flake = document.createElement("div");
+    flake.className = "snowflake";
+    flake.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+    flake.style.left = Math.random() * 100 + "vw";
+    flake.style.fontSize = (Math.random() * 14 + 14) + "px";
+    flake.style.animationDuration = (Math.random() * 14 + 16) + "s";
+    flake.style.animationDelay = (-Math.random() * 28) + "s";
+    flake.style.opacity = (Math.random() * 0.35 + 0.55).toFixed(2);
+    container.appendChild(flake);
+  }
+}
+
+// ==================================================
+// 主菜单物理符号
+// ==================================================
+function initMenuSymbols() {
+  var card = document.querySelector(".menu-card");
+  if (!card) return;
+  var old = card.querySelectorAll(".menu-symbol");
+  for (var k = 0; k < old.length; k++) old[k].remove();
+  var symbols = ["∫", "∂", "π", "Δ", "Σ", "λ", "θ", "μ"];
+  for (var i = 0; i < 8; i++) {
+    var  = document.createElement("div");
+    .className = "menu-symbol";
+    .textContent = symbols[i];
+    .style.left = (Math.random() * 80 + 10) + "%";
+    .style.top = (Math.random() * 80 + 10) + "%";
+    .style.fontSize = (Math.random() * 20 + 14) + "px";
+    .style.animationDuration = (Math.random() * 15 + 15) + "s";
+    .style.animationDelay = (-Math.random() * 20) + "s";
+    card.appendChild();
+  }
+}
+
+// ==================================================
+// 事件绑定
+// ==================================================
+function bindEvents() {
+  document.getElementById("btn-new").onclick = function() {
+    resetState(); clearSave(); goto("start");
+  };
+  document.getElementById("btn-continue").onclick = function() {
+    if (loadGame()) {
+      if (state.scene.indexOf("ending_") === 0 || state.scene.indexOf("epilogue_") === 0) {
+        resetState(); goto("start"); return;
+      }
+      goto(state.scene);
+    } else { goto("start"); }
+  };
+  document.getElementById("btn-endings").onclick = function() {
+    renderEndingsList(); showScreen("endings");
+  };
+  document.getElementById("btn-guide").onclick = function() { showScreen("guide"); };
+  document.getElementById("btn-about").onclick = function() { showScreen("about"); };
+  document.getElementById("btn-endings-back").onclick = function() { refreshMenu(); showScreen("menu"); };
+  document.getElementById("btn-guide-back").onclick = function() { refreshMenu(); showScreen("menu"); };
+  document.getElementById("btn-about-back").onclick = function() { refreshMenu(); showScreen("menu"); };
+  document.getElementById("btn-home").onclick = function() {
+    saveGame(); refreshMenu(); showScreen("menu");
+  };
+}
+
+// ==================================================
+// 启动
+// ==================================================
+function boot() {
+  initTheme();
+  initSnow();
+  initMenuSymbols();
+  bindEvents();
+  refreshMenu();
+  showScreen("menu");
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", boot);
+} else {
+  boot();
+}
+</script>
+</body>
+</html>
