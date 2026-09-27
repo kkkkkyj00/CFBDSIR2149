@@ -28,7 +28,7 @@
     background: var(--bg-page);
     font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
     color: var(--text-main); min-height: 100vh;
-    transition: background 0.5 ease, color 0.5 ease;
+    transition: background 0.5s ease, color 0.5s ease;
   }
   body { display: flex; justify-content: center; align-items: flex-start; padding: 24px 16px 48px; position: relative; overflow-x: hidden; }
 
@@ -125,7 +125,7 @@
     top: 0; left: 0; right: 0;
     height: 4px;
     border-radius: 12px 12px 0 0;
-    transition: background 1 ease;
+    transition: background 1s ease;
     pointer-events: none;
     z-index: 3;
   }
@@ -139,10 +139,10 @@
   body.night .season-autumn { background: linear-gradient(to right, #6a5a4a, #8a7a5a, #6a5a4a); }
 
   .game-topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; position: relative; z-index: 2; }
-  .home-btn { font-size: 12px; color: var(--text-muted); background: transparent; border: none; cursor: pointer; font-family: inherit; padding: 4px 0; transition: color 0.2; }
+  .home-btn { font-size: 12px; color: var(--text-muted); background: transparent; border: none; cursor: pointer; font-family: inherit; padding: 4px 0; transition: color 0.2s; }
   .home-btn:hover { color: var(--text-title); }
   .progress-bar { width: 100%; height: 3px; background: var(--progress-bg); border-radius: 2px; margin-bottom: 16px; overflow: hidden; position: relative; z-index: 2; }
-  .progress-fill { height: 100%; background: var(--progress-fill); transition: width 0.5 ease; border-radius: 2px; }
+  .progress-fill { height: 100%; background: var(--progress-fill); transition: width 0.5s ease; border-radius: 2px; }
 
   #status-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 12px; color: var(--text-muted); margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border-soft); position: relative; z-index: 2; }
   #chapter-label { font-weight: 600; color: var(--text-muted); }
@@ -167,7 +167,7 @@
     border: 1px solid var(--border-choice);
     border-radius: 8px;
     cursor: pointer;
-    transition: all 0.25 cubic-bezier(0.25, 0.8, 0.25, 1);
+    transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
     line-height: 1.6;
     position: relative;
     overflow: hidden;
@@ -178,7 +178,7 @@
     top: 0; left: -100%;
     width: 100%; height: 100%;
     background: linear-gradient(90deg, transparent, rgba(255,255,255,0.10), transparent);
-    transition: left 0.6 ease;
+    transition: left 0.6s ease;
     pointer-events: none;
   }
   .choice-btn:hover {
@@ -349,7 +349,6 @@
   </div>
 
 </div>
-
 <script>
 "use strict";
 
@@ -359,8 +358,8 @@ var storage = {
   del: function(k) { try { window.localStorage.removeItem(k); } catch (e) {} }
 };
 
-var SAVE_KEY = "ca_save_v8";
-var ENDINGS_KEY = "ca_endings_v8";
+var SAVE_KEY = "ca_save_v9";
+var ENDINGS_KEY = "ca_endings_v9";
 var THEME_KEY = "ca_theme_v1";
 
 var state = { favor: 0, trust: 0, study: 0, stress: 0, flags: {}, scene: "start", playthrough: 0 };
@@ -450,10 +449,10 @@ function fb(chapter, title, text, next) {
   };
 }
 
-var scenes = {
+var scenes = {};
 
 // ==================== 序章 ====================
-start: {
+scenes.start = {
   chapter: "序章", title: "开学第一天",
   text: function() {
     return "九月。蝉鸣还没消，走廊里全是新学期的味道——新课本的油墨、拖把刚拖过地面的潮气、还有某间教室飘出来的粉笔灰。\n\n"
@@ -476,31 +475,31 @@ start: {
     { text: "随便找个借口", next: "fb_start_excuse", effects: { favor: -1, stress: 3 } },
     { text: "沉默点头", next: "fb_start_silent", effects: { favor: 1, trust: 3 } }
   ]
-},
+};
 
-fb_start_apologize: fb("序章", "开学第一天",
+scenes.fb_start_apologize = fb("序章", "开学第一天",
   "下课后，你走到讲台边，低头说了句对不起。\n\n"
   + "韩磊正在收拾教案，闻言看了你一眼。他眯起眼睛，像是在辨认你说的是真话还是客套。\n\n"
   + "“坐吧。”他说。没再多说。\n\n"
   + "你回到座位，心里那块石头落了一半。同桌小声笑：“你紧张什么，他又不吃人。”",
-  "c1_physics"),
+  "c1_physics");
 
-fb_start_excuse: fb("序章", "开学第一天",
+scenes.fb_start_excuse = fb("序章", "开学第一天",
   "你随口找了个理由，说是公交车堵了。\n\n"
   + "韩磊没有拆穿，只是眯着眼看了你一会儿。那种眼神很平静，但让你有点不自在。\n\n"
   + "“下次早点出门。”他转过身，继续写板书。\n\n"
   + "你坐下，后背有点冒汗。同桌凑过来：“他信了吗？”你摇头。同桌说：“他肯定不信。”",
-  "c1_physics"),
+  "c1_physics");
 
-fb_start_silent: fb("序章", "开学第一天",
+scenes.fb_start_silent = fb("序章", "开学第一天",
   "你什么都没说，只是点了点头。\n\n"
   + "韩磊似乎也没打算追问。他看了你一眼，转过身去继续讲课。\n\n"
   + "你坐下，松了口气。同桌小声说：“你这人挺安静的。”\n\n"
   + "你没接话。但不知为什么，你偷偷又看了一眼讲台上那个茶瓶。",
-  "c1_physics"),
+  "c1_physics");
 
 // ==================== 第一章 ====================
-c1_physics: {
+scenes.c1_physics = {
   chapter: "第一章 · 高一·上", title: "物理小测",
   text: function() {
     return "第一次物理小测，卷子发下来的时候，你看着上面那个红色的分数，沉默了。\n\n"
@@ -516,34 +515,34 @@ c1_physics: {
     { text: "说这次只是没复习", next: "fb_c1_physics_excuse", effects: { favor: -2, stress: 6 } },
     { text: "问他为什么不戴眼镜", next: "fb_c1_physics_glasses", effects: { favor: 3, trust: 3 } }
   ]
-},
+};
 
-fb_c1_physics_serious: fb("第一章 · 高一·上", "物理小测",
+scenes.fb_c1_physics_serious = fb("第一章 · 高一·上", "物理小测",
   "你把卷子摊开，一道道错题指给他看。\n\n"
   + "韩磊拿起笔，在草稿纸上慢慢演算。他的字很好看，步骤清晰。你听着听着，忽然觉得物理没那么难。\n\n"
   + "讲到第三道题的时候，他停了一下。\n\n"
   + "“这道题你不该错。”他说，“下次注意。”\n\n"
   + "你点头。他把草稿纸撕下来递给你：“带回去看。”",
-  "c1_seat"),
+  "c1_seat");
 
-fb_c1_physics_excuse: fb("第一章 · 高一·上", "物理小测",
+scenes.fb_c1_physics_excuse = fb("第一章 · 高一·上", "物理小测",
   "你说这次只是没复习。\n\n"
   + "韩磊没有说什么，只是把卷子推回给你，手指点了点其中一道题。\n\n"
   + "“这道题不是复不复习的问题。”\n\n"
   + "你低头看那道题，脸有点热。他也没再说什么，只是让你回去把错题整理一遍。\n\n"
   + "你走出办公室的时候，听见他拿起杯子喝了一口茶。",
-  "c1_seat"),
+  "c1_seat");
 
-fb_c1_physics_glasses: fb("第一章 · 高一·上", "物理小测",
+scenes.fb_c1_physics_glasses = fb("第一章 · 高一·上", "物理小测",
   "你没问错题，反而问他为什么不戴眼镜。\n\n"
   + "韩磊眯着眼看了你两秒，像是没料到这个问题。\n\n"
   + "“戴着不舒服。”他说。\n\n"
   + "“那你看得清吗？”\n\n"
   + "“看得清你。”他答得很顺，说完自己也顿了一下，低头翻开卷子，“……讲题。”\n\n"
   + "你没忍住，笑了一下。他也当没看见。",
-  "c1_seat"),
+  "c1_seat");
 
-c1_seat: {
+scenes.c1_seat = {
   chapter: "第一章 · 高一·上", title: "座位调整",
   text: function() {
     return "第二周，班主任调整座位。你被安排到了前排，第三排靠窗的位置。\n\n"
@@ -557,23 +556,23 @@ c1_seat: {
     { text: "顺着她的话敷衍两句", next: "fb_c1_seat_bet", effects: { favor: 3, trust: 3, flag: "bottle_watch" } },
     { text: "低头看书，不想接话", next: "fb_c1_seat_boring", effects: { study: 6 } }
   ]
-},
+};
 
-fb_c1_seat_bet: fb("第一章 · 高一·上", "座位调整",
+scenes.fb_c1_seat_bet = fb("第一章 · 高一·上", "座位调整",
   "“是啊，怪人。”你说。\n\n"
   + "同桌眼睛一亮，凑得更近：“那我们记他每次带什么吧。东方树叶、三得利、还是别的。”\n\n"
   + "你点头。心里却想的是：其实昨天他拿的那瓶，你早就看过了。\n\n"
   + "从这一天起，物理课多了一个只有你们两个人知道的小记录。",
-  "c1_sports"),
+  "c1_sports");
 
-fb_c1_seat_boring: fb("第一章 · 高一·上", "座位调整",
+scenes.fb_c1_seat_boring = fb("第一章 · 高一·上", "座位调整",
   "“没什么好看的。”你说完就低头翻课本。\n\n"
   + "同桌耸了耸肩，也转了回去。教室里很安静，只有翻书的声音。\n\n"
   + "韩磊在讲台上讲完一道题，扫了一眼教室。你低着头，笔尖在纸上划。\n\n"
   + "不知道为什么，那一瞬间你觉得他的视线好像在你这里停了一下。也许只是错觉。",
-  "c1_sports"),
+  "c1_sports");
 
-c1_sports: {
+scenes.c1_sports = {
   chapter: "第一章 · 高一·上", title: "秋季运动会",
   text: function() {
     return "十月，秋季运动会。\n\n"
@@ -589,9 +588,9 @@ c1_sports: {
     { text: "逞强说没事", next: "c1_sports_pathB", effects: { study: 6, stress: 4 } },
     { text: "开玩笑：“老师你跑得比物理公式还快。”", next: "c1_sports_pathC", effects: { favor: 4, trust: 3 } }
   ]
-},
+};
 
-c1_sports_pathA: {
+scenes.c1_sports_pathA = {
   chapter: "第一章 · 高一·上", title: "秋季运动会 · 医务室",
   text: function() {
     return "你伸出手。韩磊扶着你站起来，手一直虚扶在你胳膊边，没有真的碰到你。\n\n"
@@ -609,18 +608,18 @@ c1_sports_pathA: {
     { text: "说谢谢", next: "fb_c1_sportsA_thanks", effects: { favor: 3, trust: 3 } },
     { text: "问他上课为什么总眯眼", next: "fb_c1_sportsA_ask", effects: { favor: 5, trust: 2 } }
   ]
-},
+};
 
-fb_c1_sportsA_thanks: fb("第一章 · 高一·上", "秋季运动会 · 医务室",
+scenes.fb_c1_sportsA_thanks = fb("第一章 · 高一·上", "秋季运动会 · 医务室",
   "你说谢谢。\n\n"
   + "韩磊看了你一眼，点了点头。\n\n"
   + "“以后跑步注意。”他说。\n\n"
   + "然后他走了。你站在原地，拧开那瓶水喝了一口。\n\n"
   + "回到教室的时候，同桌凑过来：“他送你去的？”\n\n"
   + "你“嗯”了一声。同桌笑了：“那你运气挺好。”",
-  "c1_bottle"),
+  "c1_bottle");
 
-fb_c1_sportsA_ask: fb("第一章 · 高一·上", "秋季运动会 · 医务室",
+scenes.fb_c1_sportsA_ask = fb("第一章 · 高一·上", "秋季运动会 · 医务室",
   "你问他上课为什么总眯眼。\n\n"
   + "韩磊愣了一下，然后笑了。\n\n"
   + "“近视。”他说，“懒得戴。”\n\n"
@@ -631,9 +630,9 @@ fb_c1_sportsA_ask: fb("第一章 · 高一·上", "秋季运动会 · 医务室"
   + "他看了你两秒，没答。\n\n"
   + "“回教室吧。”他说完转身走了。\n\n"
   + "你站在原地，觉得他刚才那两秒，像是在想别的事。",
-  "c1_bottle"),
+  "c1_bottle");
 
-c1_sports_pathB: {
+scenes.c1_sports_pathB = {
   chapter: "第一章 · 高一·上", title: "秋季运动会 · 跑道",
   text: function() {
     return "你咬着牙站起来，试着走了两步。膝盖疼得厉害，但你忍住了。\n\n"
@@ -649,9 +648,9 @@ c1_sports_pathB: {
   choices: [
     { text: "放学后一瘸一拐地走出校门", next: "fb_c1_sportsB_leave", effects: { stress: 3 } }
   ]
-},
+};
 
-fb_c1_sportsB_leave: fb("第一章 · 高一·上", "秋季运动会 · 跑道",
+scenes.fb_c1_sportsB_leave = fb("第一章 · 高一·上", "秋季运动会 · 跑道",
   "放学的时候，你一个人慢慢往校门口走。\n\n"
   + "身后有人叫你。你回头，是韩磊。\n\n"
   + "他手里拎着包，看起来也正要走。\n\n"
@@ -661,9 +660,9 @@ fb_c1_sportsB_leave: fb("第一章 · 高一·上", "秋季运动会 · 跑道",
   + "“以后别逞强。”他说。\n\n"
   + "然后他走了。你站在原地，看着他的背影。\n\n"
   + "你不知道他刚才那一路，是特意陪你走的，还是顺路。",
-  "c1_bottle"),
+  "c1_bottle");
 
-c1_sports_pathC: {
+scenes.c1_sports_pathC = {
   chapter: "第一章 · 高一·上", title: "秋季运动会 · 跑道",
   text: function() {
     return "韩磊愣了一下，然后笑了。\n\n"
@@ -680,17 +679,17 @@ c1_sports_pathC: {
   choices: [
     { text: "心里记下这个画面", next: "fb_c1_sportsC_remember", effects: { favor: 4 } }
   ]
-},
+};
 
-fb_c1_sportsC_remember: fb("第一章 · 高一·上", "秋季运动会 · 跑道",
+scenes.fb_c1_sportsC_remember = fb("第一章 · 高一·上", "秋季运动会 · 跑道",
   "你上完药出来的时候，门口已经没人了。\n\n"
   + "你有点失落，但也没多想。\n\n"
   + "回教室的路上，你突然想起刚才他那个笑。\n\n"
   + "那种没忍住的、眼角的细纹都出来的笑。\n\n"
   + "你想，这大概是第一次他把你当学生之外的人看。",
-  "c1_bottle"),
+  "c1_bottle");
 
-c1_bottle: {
+scenes.c1_bottle = {
   chapter: "第一章 · 高一·上", title: "期中考试前",
   text: function() {
     return "期中考试前一周。\n\n"
@@ -708,33 +707,33 @@ c1_bottle: {
     { text: "“老师你这样真的很像在泡茶。”", next: "fb_c1_bottle_joke", effects: { favor: 4, trust: 3, flag: "bottle_watch" } },
     { text: "回头又看了一眼", next: "fb_c1_bottle_lookback", effects: { favor: 5, stress: 2 } }
   ]
-},
+};
 
-fb_c1_bottle_silent: fb("第一章 · 高一·上", "期中考试前",
+scenes.fb_c1_bottle_silent = fb("第一章 · 高一·上", "期中考试前",
   "你什么都没说。\n\n"
   + "回座位的路上，你听见他在身后拧瓶盖的声音。\n\n"
   + "同桌凑过来：“你刚才看什么呢？”\n\n"
   + "“没什么。”你说。然后低下头，翻开卷子。\n\n"
   + "那一节课你都没再抬头。但你记得他刚才的动作。",
-  "c1_exam"),
+  "c1_exam");
 
-fb_c1_bottle_joke: fb("第一章 · 高一·上", "期中考试前",
+scenes.fb_c1_bottle_joke = fb("第一章 · 高一·上", "期中考试前",
   "你说他像在泡茶。\n\n"
   + "韩磊看了你一眼，把瓶盖拧上。\n\n"
   + "“观察力用在物理上就好了。”\n\n"
   + "话是这么说，但你没听出责怪的意思。他低头批作业，你转身回座位。\n\n"
   + "同桌问你怎么笑得那么开心。你说没什么。",
-  "c1_exam"),
+  "c1_exam");
 
-fb_c1_bottle_lookback: fb("第一章 · 高一·上", "期中考试前",
+scenes.fb_c1_bottle_lookback = fb("第一章 · 高一·上", "期中考试前",
   "你走回座位的时候，忍不住又回头看了一眼。\n\n"
   + "韩磊正低头批卷子，没注意到你。他批卷子的姿势很认真，笔尖在纸面上划出细细的声音。\n\n"
   + "茶瓶就放在他手边。\n\n"
   + "你收回视线，心跳有点快。同桌在旁边戳你：“你干嘛呢。”\n\n"
   + "“没事。”你说。",
-  "c1_exam"),
+  "c1_exam");
 
-c1_exam: {
+scenes.c1_exam = {
   chapter: "第一章 · 高一·上", title: "月考成绩",
   text: function() {
     if (state.study >= 18) {
@@ -755,30 +754,30 @@ c1_exam: {
     { text: "问他为什么当老师", next: "fb_c1_exam_ask", effects: { favor: 5, trust: 4 } },
     { text: "沉默地收拾书包", next: "fb_c1_exam_silent", effects: { favor: 1 } }
   ]
-},
+};
 
-fb_c1_exam_continue: fb("第一章 · 高一·上", "月考成绩",
+scenes.fb_c1_exam_continue = fb("第一章 · 高一·上", "月考成绩",
   "你继续按部就班地学。\n\n"
   + "晚自习的时候，韩磊在教室里转了一圈，走到你旁边站了一下，看你写题。他没说话，走开了。\n\n"
   + "但你觉得他在你那里停了比别处长一点。\n\n"
   + "同桌在旁边用笔戳你。你没理她。",
-  "c1_end"),
+  "c1_end");
 
-fb_c1_exam_ask: fb("第一章 · 高一·上", "月考成绩",
+scenes.fb_c1_exam_ask = fb("第一章 · 高一·上", "月考成绩",
   "你问他为什么当老师。\n\n"
   + "韩磊愣了一下。他放下手里的笔，眯着眼想了想。\n\n"
   + "“物理有意思。”他顿了一下，“教你们也挺有意思。”\n\n"
   + "说完他自己也笑了一下，像是觉得这个回答太简单了。\n\n"
   + "你没再问。但你觉得他说这句话的时候，眼睛里有一点别的东西。",
-  "c1_end"),
+  "c1_end");
 
-fb_c1_exam_silent: fb("第一章 · 高一·上", "月考成绩",
+scenes.fb_c1_exam_silent = fb("第一章 · 高一·上", "月考成绩",
   "你默默收拾书包。\n\n"
   + "韩磊看了你一眼，也没多说什么。你走出办公室的时候，回头看了一眼——他正低头继续批作业，灯光照在他头发上。\n\n"
   + "走廊里很安静。你走回教室，发现同桌还在等你一起回家。",
-  "c1_end"),
+  "c1_end");
 
-c1_end: {
+scenes.c1_end = {
   chapter: "第一章 · 高一·上", title: "章末",
   text: function() {
     return "寒假前的最后一周。\n\n"
@@ -792,10 +791,10 @@ c1_end: {
       + "她背上书包跑了。你站在教室门口，看着她的背影，觉得脸上有点热。";
   },
   choices: [{ text: "进入第二章", next: "c2_open" }]
-},
+};
 
 // ==================== 第二章 ====================
-c2_open: {
+scenes.c2_open = {
   chapter: "第二章 · 高一·下", title: "开学第一课",
   text: function() {
     return "二月，开学。\n\n"
@@ -814,32 +813,32 @@ c2_open: {
     { text: "低头记笔记", next: "fb_c2_open_notes", effects: { study: 8 } },
     { text: "把同桌的胳膊推开", next: "fb_c2_open_push", effects: { trust: 1, stress: 3 } }
   ]
-},
+};
 
-fb_c2_open_pretend: fb("第二章 · 高一·下", "开学第一课",
+scenes.fb_c2_open_pretend = fb("第二章 · 高一·下", "开学第一课",
   "你翻开课本，眼睛落在上面，脑子却没跟着。\n\n"
   + "韩磊讲完一个知识点，你在纸上无意识地画圈。同桌凑过来看了一眼，笑了。\n\n"
   + "“你这画的什么。”\n\n"
   + "你合上书，把纸塞进抽屉：“没什么。”\n\n"
   + "下课铃响的时候你才发现，这一节课你一个字都没记进去。",
-  "c2_progress"),
+  "c2_progress");
 
-fb_c2_open_notes: fb("第二章 · 高一·下", "开学第一课",
+scenes.fb_c2_open_notes = fb("第二章 · 高一·下", "开学第一课",
   "你低头记笔记。\n\n"
   + "韩磊在讲台上讲，你一字一句地记。同桌在旁边捅了你一下，你没理她。\n\n"
   + "下课之后，你翻了翻笔记，发现自己记得比上学期认真多了。\n\n"
   + "窗外的天还很冷，但阳光已经有一点暖了。",
-  "c2_progress"),
+  "c2_progress");
 
-fb_c2_open_push: fb("第二章 · 高一·下", "开学第一课",
+scenes.fb_c2_open_push = fb("第二章 · 高一·下", "开学第一课",
   "你把同桌的胳膊推开了。\n\n"
   + "她愣了一下，没再说话。你把课本翻到下一页，眼睛盯着公式，心里却烦。\n\n"
   + "不知道是烦她，还是烦自己。\n\n"
   + "下课的时候，同桌递给你一张纸条：“你最近怪怪的。”\n\n"
   + "你把纸条折起来，塞进了口袋。",
-  "c2_progress"),
+  "c2_progress");
 
-c2_progress: {
+scenes.c2_progress = {
   chapter: "第二章 · 高一·下", title: "物理小测",
   text: function() {
     if (state.study >= 30) {
@@ -860,9 +859,9 @@ c2_progress: {
     { text: "把卷子收进抽屉，什么都不做", next: "fb_c2_progress_ignore", effects: { stress: 2 } },
     { text: "和同桌抱怨物理太难", next: "fb_c2_progress_complain", effects: { favor: -1, stress: 2 } }
   ]
-},
+};
 
-fb_c2_progress_thanks: fb("第二章 · 高一·下", "物理小测",
+scenes.fb_c2_progress_thanks = fb("第二章 · 高一·下", "物理小测",
   "你问他有没有更难的题。\n\n"
   + "韩磊看了你一眼，从抽屉里拿出一本卷子，翻到中间某一页，折了个角。\n\n"
   + "“试试这套。”他说，“做完拿来找我。”\n\n"
@@ -872,25 +871,25 @@ fb_c2_progress_thanks: fb("第二章 · 高一·下", "物理小测",
   + "“嗯？”\n\n"
   + "“没什么。”\n\n"
   + "你抱着卷子走出了办公室。走廊里阳光很好。",
-  "c2_research"),
+  "c2_research");
 
-fb_c2_progress_ignore: fb("第二章 · 高一·下", "物理小测",
+scenes.fb_c2_progress_ignore = fb("第二章 · 高一·下", "物理小测",
   "你把卷子收进抽屉，什么都没做。\n\n"
   + "下课后，同桌问你要不要去问老师几道题。你说不去。\n\n"
   + "“你最近怎么都不去办公室了？”她问。\n\n"
   + "“懒得去。”你说。\n\n"
   + "同桌看了你一会儿，没说话。她大概是看出来了什么，但没点破。",
-  "c2_research"),
+  "c2_research");
 
-fb_c2_progress_complain: fb("第二章 · 高一·下", "物理小测",
+scenes.fb_c2_progress_complain = fb("第二章 · 高一·下", "物理小测",
   "你跟同桌抱怨物理太难。\n\n"
   + "“他讲得也不怎么样。”你说，“老眯着眼，谁知道他在看哪儿。”\n\n"
   + "同桌看了你一会儿，笑了：“你观察得挺仔细啊。”\n\n"
   + "你闭嘴了。\n\n"
   + "窗外玉兰花瓣落了一地。你觉得自己刚才那句话特别此地无银。",
-  "c2_research"),
+  "c2_research");
 
-c2_research: {
+scenes.c2_research = {
   chapter: "第二章 · 高一·下", title: "春季研学",
   text: function() {
     return "四月，学校组织春季研学。去的是郊区一个科技馆，坐大巴要两个小时。\n\n"
@@ -909,16 +908,16 @@ c2_research: {
     { text: "到科技馆后，找机会问他问题", next: "fb_c2_research_ask", effects: { favor: 5, study: 6 } },
     { text: "全程跟同桌走，不去找他", next: "fb_c2_research_avoid", effects: { favor: -3, stress: 4 } }
   ]
-},
+};
 
-fb_c2_research_press: fb("第二章 · 高一·下", "春季研学",
+scenes.fb_c2_research_press = fb("第二章 · 高一·下", "春季研学",
   "你把她的眼罩按回去了。\n\n"
   + "“睡觉。”你说。\n\n"
   + "同桌没再问，笑了一声，翻了个身。\n\n"
   + "车开动了。窗外的树一排一排往后跑。你靠着窗户，看着玻璃上自己的倒影，想刚才他是不是真的笑了一下。",
-  "c2_parents"),
+  "c2_parents");
 
-fb_c2_research_ask: fb("第二章 · 高一·下", "春季研学",
+scenes.fb_c2_research_ask = fb("第二章 · 高一·下", "春季研学",
   "科技馆里人很多，你找了个机会溜到韩磊旁边。\n\n"
   + "他正站在一个光学展台前，看一块棱镜把白光拆成七色。\n\n"
   + "“老师。”你说。\n\n"
@@ -928,9 +927,9 @@ fb_c2_research_ask: fb("第二章 · 高一·下", "春季研学",
   + "你把物理卷子上那道一直不会的题拿出来。他看了一眼，笑了。\n\n"
   + "“这道题。”他说，“你昨天不是问过吗。”\n\n"
   + "你没答。他也没追问，低下头，认认真真给你讲了一遍。",
-  "c2_parents"),
+  "c2_parents");
 
-fb_c2_research_avoid: fb("第二章 · 高一·下", "春季研学",
+scenes.fb_c2_research_avoid = fb("第二章 · 高一·下", "春季研学",
   "你全程都跟同桌走。\n\n"
   + "韩磊带你们参观的时候，你走在队伍最后。他讲解的时候，你假装在看展品。\n\n"
   + "中午吃饭的时候，同桌问你：“你今天怎么了？”\n\n"
@@ -938,9 +937,9 @@ fb_c2_research_avoid: fb("第二章 · 高一·下", "春季研学",
   + "“你是不是跟他闹别扭了？”\n\n"
   + "“跟他闹什么别扭。”你说得太快了。\n\n"
   + "同桌没再问。但你看得出来，她什么都猜到了。",
-  "c2_parents"),
+  "c2_parents");
 
-c2_parents: {
+scenes.c2_parents = {
   chapter: "第二章 · 高一·下", title: "家长会",
   text: function() {
     return "五月，家长会。\n\n"
@@ -954,9 +953,9 @@ c2_parents: {
     { text: "说没什么", next: "c2_parents_pathB", effects: { stress: 4, flag: "hid_family" } },
     { text: "岔开话题，问他以前的事", next: "c2_parents_pathC", effects: { favor: 3, flag: "deflected_family" } }
   ]
-},
+};
 
-c2_parents_pathA: {
+scenes.c2_parents_pathA = {
   chapter: "第二章 · 高一·下", title: "家长会 · 坦白",
   text: function() {
     return "你说了。\n\n"
@@ -976,9 +975,9 @@ c2_parents_pathA: {
   choices: [
     { text: "跟上去", next: "fb_c2_pA_follow", effects: { favor: 3, trust: 3 } }
   ]
-},
+};
 
-fb_c2_pA_follow: fb("第二章 · 高一·下", "家长会 · 坦白",
+scenes.fb_c2_pA_follow = fb("第二章 · 高一·下", "家长会 · 坦白",
   "你跟着他下了看台。\n\n"
   + "操场上没什么人。他走在前面，脚步不快，像是在等你。\n\n"
   + "走廊里他忽然停下，回头看你。\n\n"
@@ -986,9 +985,9 @@ fb_c2_pA_follow: fb("第二章 · 高一·下", "家长会 · 坦白",
   + "你点头。\n\n"
   + "他转身进了办公室。你站在走廊里，灯光把你的影子拉得很长。\n\n"
   + "那天晚上你躺在床上，忽然觉得，好像有什么东西不一样了。",
-  "c2_jealous"),
+  "c2_jealous");
 
-c2_parents_pathB: {
+scenes.c2_parents_pathB = {
   chapter: "第二章 · 高一·下", title: "家长会 · 掩饰",
   text: function() {
     return "你说没什么。\n\n"
@@ -1007,9 +1006,9 @@ c2_parents_pathB: {
     { text: "叫住他", next: "fb_c2_pB_call", effects: { favor: 3, trust: 3 } },
     { text: "看着他走远", next: "fb_c2_pB_watch", effects: { stress: 3 } }
   ]
-},
+};
 
-fb_c2_pB_call: fb("第二章 · 高一·下", "家长会 · 掩饰",
+scenes.fb_c2_pB_call = fb("第二章 · 高一·下", "家长会 · 掩饰",
   "你站起来，叫了一声“老师”。\n\n"
   + "他停下，回头。\n\n"
   + "“还有事？”\n\n"
@@ -1018,18 +1017,18 @@ fb_c2_pB_call: fb("第二章 · 高一·下", "家长会 · 掩饰",
   + "他看了你一会儿，点了点头，走了。\n\n"
   + "你站在原地，看着他的背影拐过教学楼，消失在路灯后面。\n\n"
   + "你才发现，手心里全是汗。",
-  "c2_jealous"),
+  "c2_jealous");
 
-fb_c2_pB_watch: fb("第二章 · 高一·下", "家长会 · 掩饰",
+scenes.fb_c2_pB_watch = fb("第二章 · 高一·下", "家长会 · 掩饰",
   "你什么都没做。\n\n"
   + "你坐在看台上，看着他走远，直到拐弯看不见了。\n\n"
   + "操场上只剩你一个人。\n\n"
   + "那一刻你忽然觉得，有些话如果不说，就永远说不出来了。\n\n"
   + "你低下头，把脸埋进膝盖里。\n\n"
   + "过了很久，你才站起来，往校门口走。",
-  "c2_jealous"),
+  "c2_jealous");
 
-c2_parents_pathC: {
+scenes.c2_parents_pathC = {
   chapter: "第二章 · 高一·下", title: "家长会 · 岔开话题",
   text: function() {
     return "你不想说。\n\n"
@@ -1055,9 +1054,9 @@ c2_parents_pathC: {
     { text: "跟上去", next: "fb_c2_pC_ask", effects: { favor: 5, trust: 3 } },
     { text: "在原地站一会儿", next: "fb_c2_pC_quiet", effects: { favor: 3, trust: 2 } }
   ]
-},
+};
 
-fb_c2_pC_ask: fb("第二章 · 高一·下", "家长会 · 岔开话题",
+scenes.fb_c2_pC_ask = fb("第二章 · 高一·下", "家长会 · 岔开话题",
   "你跟了上去。\n\n"
   + "他走得慢，你很快就和他并肩了。\n\n"
   + "“你问这些干嘛。”他说。\n\n"
@@ -1068,9 +1067,9 @@ fb_c2_pC_ask: fb("第二章 · 高一·下", "家长会 · 岔开话题",
   + "“回去吧。”他说，“明天还有课。”\n\n"
   + "你点头。走到校门口，他往左，你往右。\n\n"
   + "你走出几步，回头看了一眼。他已经走远了。",
-  "c2_jealous"),
+  "c2_jealous");
 
-fb_c2_pC_quiet: fb("第二章 · 高一·下", "家长会 · 岔开话题",
+scenes.fb_c2_pC_quiet = fb("第二章 · 高一·下", "家长会 · 岔开话题",
   "你在原地站了一会儿。\n\n"
   + "看台上已经没人了，操场上也空了。教学楼的窗户一盏一盏灭掉。\n\n"
   + "你想起他刚才说的话。\n\n"
@@ -1079,9 +1078,9 @@ fb_c2_pC_quiet: fb("第二章 · 高一·下", "家长会 · 岔开话题",
   + "然后你背上书包，慢慢往校门口走。\n\n"
   + "门口的路灯下，你回头看了一眼操场看台。\n\n"
   + "什么都没有。",
-  "c2_jealous"),
+  "c2_jealous");
 
-c2_jealous: {
+scenes.c2_jealous = {
   chapter: "第二章 · 高一·下", title: "期末前",
   text: function() {
     var base = "六月，期末临近。\n\n"
@@ -1120,32 +1119,32 @@ c2_jealous: {
     { text: "转身离开，改天再来", next: "fb_c2_jealous_leave", effects: { favor: -5, stress: 5, flag: "jealous" } },
     { text: "回教室，装作没看见", next: "fb_c2_jealous_ignore", effects: { favor: -2, stress: 4, flag: "jealous" } }
   ]
-},
+};
 
-fb_c2_jealous_putdown: fb("第二章 · 高一·下", "期末前",
+scenes.fb_c2_jealous_putdown = fb("第二章 · 高一·下", "期末前",
   "你推门进去，把作业本放在他桌上。声音比平时大了一点。\n\n"
   + "韩磊抬头看你，眯着眼。\n\n"
   + "“放这就行。”\n\n"
   + "那个女生看了你一眼，笑了笑，继续问问题。你转身走了。\n\n"
   + "回教室的路上，你走得很快。同桌问你交个作业怎么这么久，你说没什么。\n\n"
   + "但你心里很清楚，你刚才为什么那么大声。",
-  "c2_summer"),
+  "c2_summer");
 
-fb_c2_jealous_leave: fb("第二章 · 高一·下", "期末前",
+scenes.fb_c2_jealous_leave = fb("第二章 · 高一·下", "期末前",
   "你没有进去。\n\n"
   + "你转身走了，手里的作业本抱得很紧。走廊很长，你走到头才想起来自己本来是来交作业的。\n\n"
   + "第二天你把作业放在了讲台上。韩磊看了一眼，没问为什么。\n\n"
   + "但你总觉得他好像注意到了什么。",
-  "c2_summer"),
+  "c2_summer");
 
-fb_c2_jealous_ignore: fb("第二章 · 高一·下", "期末前",
+scenes.fb_c2_jealous_ignore = fb("第二章 · 高一·下", "期末前",
   "你回教室了。什么都没做。\n\n"
   + "同桌问你作业交了没，你说交了。\n\n"
   + "那一整天你都没看办公室的方向。晚自习的时候韩磊进来巡课，你埋头做题，笔尖在纸上划得很快。\n\n"
   + "他在你旁边站了一会儿，走了。你没抬头。",
-  "c2_summer"),
+  "c2_summer");
 
-c2_summer: {
+scenes.c2_summer = {
   chapter: "第二章 · 高一·下", title: "暑假前最后一节课",
   text: function() {
     var base = "七月，期末最后一节课。\n\n"
@@ -1186,9 +1185,9 @@ c2_summer: {
     { text: "直接回家", next: "fb_c2_summer_leave", effects: {} },
     { text: "发消息问他暑假作业", next: "fb_c2_summer_message", effects: { favor: 4, stress: 3, flag: "msg" } }
   ]
-},
+};
 
-fb_c2_summer_wait: fb("第二章 · 高一·下", "暑假前最后一节课",
+scenes.fb_c2_summer_wait = fb("第二章 · 高一·下", "暑假前最后一节课",
   "你站在楼梯口，假装在等人。\n\n"
   + "其实你也没想好要等谁。只是不想这么快就走。\n\n"
   + "韩磊最后出来，手里抱着一摞卷子。看到你，他脚步慢了半拍。\n\n"
@@ -1196,16 +1195,16 @@ fb_c2_summer_wait: fb("第二章 · 高一·下", "暑假前最后一节课",
   + "“嗯。”\n\n"
   + "“路上小心。”他说完就走了。\n\n"
   + "你站在原地，看着他下楼。他一次都没回头。",
-  "c2_anxiety"),
+  "c2_anxiety");
 
-fb_c2_summer_leave: fb("第二章 · 高一·下", "暑假前最后一节课",
+scenes.fb_c2_summer_leave = fb("第二章 · 高一·下", "暑假前最后一节课",
   "你直接回家了。\n\n"
   + "走在路上，你忍不住想起刚才他站在黑板前的样子。\n\n"
   + "你停下脚步，回头看了一眼学校。教学楼三楼的窗户关着，看不见里面。\n\n"
   + "你转身继续走。风从背后吹过来，热得让人喘不过气。",
-  "c2_anxiety"),
+  "c2_anxiety");
 
-fb_c2_summer_message: fb("第二章 · 高一·下", "暑假前最后一节课",
+scenes.fb_c2_summer_message = fb("第二章 · 高一·下", "暑假前最后一节课",
   "那天晚上，你翻来覆去睡不着，最后还是拿起手机，发了一条消息。\n\n"
   + "你：老师，暑假作业第三页那道题答案是多少？\n\n"
   + "过了两分钟，手机亮了。\n\n"
@@ -1213,9 +1212,9 @@ fb_c2_summer_message: fb("第二章 · 高一·下", "暑假前最后一节课",
   + "自己写。\n\n"
   + "你盯着那个猫头像看了很久。\n\n"
   + "然后你把手机扣在枕边，脸埋进被子里。",
-  "c2_anxiety"),
+  "c2_anxiety");
 
-c2_anxiety: {
+scenes.c2_anxiety = {
   chapter: "第二章 · 高一·下", title: "暑假",
   text: function() {
     var base = "暑假的前半段过得很快。补课、作业、和朋友出去玩。\n\n"
@@ -1248,18 +1247,18 @@ c2_anxiety: {
     { text: "一个人闷着，什么也不说", next: "fb_c2_anxiety_alone", effects: { stress: 5 } },
     { text: "翻出物理课本，看了一会儿", next: "fb_c2_anxiety_study", effects: { study: 6, favor: 2 } }
   ]
-},
+};
 
-fb_c2_anxiety_talk: fb("第二章 · 高一·下", "暑假",
+scenes.fb_c2_anxiety_talk = fb("第二章 · 高一·下", "暑假",
   "你给同桌发消息：你说开学分班，会不会换班主任。\n\n"
   + "她秒回：你担心的是换班主任，还是换谁。\n\n"
   + "你盯着这句话，看了很久。\n\n"
   + "最后你回：换谁啊，我就随便问问。\n\n"
   + "她回了一个字：哦。\n\n"
   + "然后就没有下文了。但你觉得她一定在屏幕那边笑。",
-  "c2_end"),
+  "c2_end");
 
-fb_c2_anxiety_alone: fb("第二章 · 高一·下", "暑假",
+scenes.fb_c2_anxiety_alone = fb("第二章 · 高一·下", "暑假",
   "你什么都没说。\n\n"
   + "整个暑假的最后两周，你都在反复刷班级群，看有没有分班的消息。\n\n"
   + "有一天群里终于发了新班级名单。\n\n"
@@ -1267,16 +1266,16 @@ fb_c2_anxiety_alone: fb("第二章 · 高一·下", "暑假",
   + "班主任那一栏写着：韩磊。\n\n"
   + "你盯着那两个字看了很久，然后放下手机，躺倒在床上。\n\n"
   + "心口那块石头，落了地。",
-  "c2_end"),
+  "c2_end");
 
-fb_c2_anxiety_study: fb("第二章 · 高一·下", "暑假",
+scenes.fb_c2_anxiety_study = fb("第二章 · 高一·下", "暑假",
   "你把物理课本翻出来，从第一页看到最后一页。\n\n"
   + "其实没看进去多少。你只是在想，如果开学他还在，他讲的时候你能听懂。\n\n"
   + "想到这里，你觉得自己有点可笑。\n\n"
   + "但你还是继续翻着。",
-  "c2_end"),
+  "c2_end");
 
-c2_end: {
+scenes.c2_end = {
   chapter: "第二章 · 高一·下", title: "章末",
   text: function() {
     return "暑假结束前一周，分班名单出来了。\n\n"
@@ -1285,10 +1284,10 @@ c2_end: {
       + "那天晚上你睡得特别早。";
   },
   choices: [{ text: "进入第三章", next: "c3_open" }]
-},
+};
 
 // ==================== 第三章 ====================
-c3_open: {
+scenes.c3_open = {
   chapter: "第三章 · 高二", title: "分班后第一节课",
   text: function() {
     return "九月，高二开学。\n\n"
@@ -1303,31 +1302,31 @@ c3_open: {
     { text: "继续低头", next: "fb_c3_open_down", effects: { study: 8 } },
     { text: "被同桌发现异常", next: "fb_c3_open_deskmate", effects: { trust: 3 } }
   ]
-},
+};
 
-fb_c3_open_up: fb("第三章 · 高二", "分班后第一节课",
+scenes.fb_c3_open_up = fb("第三章 · 高二", "分班后第一节课",
   "你强迫自己抬头。\n\n"
   + "韩磊正在板书，你看着他的背影。白衬衫的后背有一点褶皱，粉笔灰落在肩上。\n\n"
   + "他写完一行字，转过身，视线扫过你，又移开了。\n\n"
   + "你松了口气，又有点失落。\n\n"
   + "下课之后，你发现自己什么都没记住。",
-  "c3_contest"),
+  "c3_contest");
 
-fb_c3_open_down: fb("第三章 · 高二", "分班后第一节课",
+scenes.fb_c3_open_down = fb("第三章 · 高二", "分班后第一节课",
   "你一整节课都低着头。\n\n"
   + "笔记写了大半页，但你自己都不知道写了什么。下课铃响的时候，你才发现自己一直在画圈。\n\n"
   + "同桌看了一眼你的笔记本，没说话。\n\n"
   + "窗外阳光很好。你把那页笔记翻过去，压在最下面。",
-  "c3_contest"),
+  "c3_contest");
 
-fb_c3_open_deskmate: fb("第三章 · 高二", "分班后第一节课",
+scenes.fb_c3_open_deskmate = fb("第三章 · 高二", "分班后第一节课",
   "同桌发现你不对劲。\n\n"
   + "她小声问你最近怎么了。你张了张嘴，最后只说“没事”。\n\n"
   + "她没再追问，只是看你的眼神多了点担心。\n\n"
   + "下课之后，她把自己的笔记推给你：“你刚才没记全，抄我的吧。”",
-  "c3_contest"),
+  "c3_contest");
 
-c3_contest: {
+scenes.c3_contest = {
   chapter: "第三章 · 高二", title: "物理竞赛",
   text: function() {
     return "十月，物理竞赛报名开始。\n\n"
@@ -1340,24 +1339,24 @@ c3_contest: {
     { text: "拒绝", next: "fb_c3_contest_refuse", effects: { favor: -2, stress: -4 } },
     { text: "踌躇，说想再想想", next: "c3_contest_hesitate", effects: { favor: 2, stress: 3 } }
   ]
-},
+};
 
-fb_c3_contest_join: fb("第三章 · 高二", "物理竞赛",
+scenes.fb_c3_contest_join = fb("第三章 · 高二", "物理竞赛",
   "你说你报名。\n\n"
   + "韩磊点了点头，在名单上写下你的名字。笔尖压在纸上，发出沙沙的声音。\n\n"
   + "“有不会的，随时来问。”他说这话的时候没看你，但语气比平时认真。\n\n"
   + "你走出办公室的时候，心里有点紧张，也有点期待。",
-  "c3_hallway"),
+  "c3_hallway");
 
-fb_c3_contest_refuse: fb("第三章 · 高二", "物理竞赛",
+scenes.fb_c3_contest_refuse = fb("第三章 · 高二", "物理竞赛",
   "你拒绝了。\n\n"
   + "韩磊没有勉强，只是把名单收了起来。\n\n"
   + "“也好，高三再说。”\n\n"
   + "他把笔放回笔筒，继续批作业，像是刚才什么都没发生。\n\n"
   + "你走到门口，回头看了他一眼。他没抬头。",
-  "c3_hallway"),
+  "c3_hallway");
 
-c3_contest_hesitate: {
+scenes.c3_contest_hesitate = {
   chapter: "第三章 · 高二", title: "物理竞赛",
   text: function() {
     return "你说想再想想。\n\n"
@@ -1376,26 +1375,26 @@ c3_contest_hesitate: {
     { text: "不报", next: "fb_c3_hesitate_skip", effects: { favor: 1, stress: -3, flag: "skip_contest" } },
     { text: "回：老师你希望我报吗", next: "fb_c3_hesitate_ask", effects: { favor: 8, trust: 6, flag: "asked_him" } }
   ]
-},
+};
 
-fb_c3_hesitate_join: fb("第三章 · 高二", "物理竞赛",
+scenes.fb_c3_hesitate_join = fb("第三章 · 高二", "物理竞赛",
   "你回了一个字：报。\n\n"
   + "他秒回：明天来找我拿资料。\n\n"
   + "你盯着屏幕，心跳有点快。\n\n"
   + "第二天你到办公室的时候，他桌上已经放了一摞打印好的往年真题。\n\n"
   + "“先做前三套。”他说，“做完再来。”\n\n"
   + "你点头。抱着那摞卷子出来的时候，觉得比昨天重。",
-  "c3_hallway"),
+  "c3_hallway");
 
-fb_c3_hesitate_skip: fb("第三章 · 高二", "物理竞赛",
+scenes.fb_c3_hesitate_skip = fb("第三章 · 高二", "物理竞赛",
   "你回：算了，不报了。\n\n"
   + "他回了一个“嗯”，然后没了。\n\n"
   + "你把手机扣在枕边，闭上眼。\n\n"
   + "你告诉自己这样挺好，高三前最后一个轻松的学期。\n\n"
   + "但第二天上课的时候，你发现他没怎么看你。",
-  "c3_hallway"),
+  "c3_hallway");
 
-fb_c3_hesitate_ask: fb("第三章 · 高二", "物理竞赛",
+scenes.fb_c3_hesitate_ask = fb("第三章 · 高二", "物理竞赛",
   "你回：老师你希望我报吗。\n\n"
   + "这次他过了很久才回。\n\n"
   + "〔🐱 CFBDSIR2149〕\n"
@@ -1407,9 +1406,9 @@ fb_c3_hesitate_ask: fb("第三章 · 高二", "物理竞赛",
   + "然后你回：那我报。\n\n"
   + "他回：明天来拿资料。\n\n"
   + "你抱着手机，脸埋进被子里。",
-  "c3_hallway"),
+  "c3_hallway");
 
-c3_hallway: {
+scenes.c3_hallway = {
   chapter: "第三章 · 高二", title: "走廊擦肩",
   text: function() {
     if (state.flags.skip_contest) {
@@ -1443,32 +1442,32 @@ c3_hallway: {
     { text: "直接走开", next: "fb_c3_hallway_walk", effects: {} },
     { text: "叫住他：“老师你刚才是不是没认出我？”", next: "fb_c3_hallway_call", effects: { favor: 7, trust: 2 } }
   ]
-},
+};
 
-fb_c3_hallway_look: fb("第三章 · 高二", "走廊擦肩",
+scenes.fb_c3_hallway_look = fb("第三章 · 高二", "走廊擦肩",
   "你回头看了他一眼。\n\n"
   + "他正往办公室方向走，背影在走廊尽头越来越小。有学生跟他打招呼，他点头回应。\n\n"
   + "你站在原地，直到他拐弯看不见了，才转身回教室。\n\n"
   + "同桌在门口等你：“你刚才站那儿干嘛？”你摇头。",
-  "c3_midterm"),
+  "c3_midterm");
 
-fb_c3_hallway_walk: fb("第三章 · 高二", "走廊擦肩",
+scenes.fb_c3_hallway_walk = fb("第三章 · 高二", "走廊擦肩",
   "你直接走开了。\n\n"
   + "走廊里人来人往，你挤进人群里，把刚才那一瞬间的感觉压下去了。\n\n"
   + "回到教室，同桌正在抄作业。她抬头看了你一眼：“怎么了？”\n\n"
   + "“没事。”你坐下，翻开课本。",
-  "c3_midterm"),
+  "c3_midterm");
 
-fb_c3_hallway_call: fb("第三章 · 高二", "走廊擦肩",
+scenes.fb_c3_hallway_call = fb("第三章 · 高二", "走廊擦肩",
   "你叫住他。\n\n"
   + "韩磊回头，眯着眼看你。\n\n"
   + "“没认出我？”你说。\n\n"
   + "他愣了一下，然后笑了。\n\n"
   + "“下次配眼镜。”他挥了挥手，走了。\n\n"
   + "你站在原地，心跳得很快。",
-  "c3_midterm"),
+  "c3_midterm");
 
-c3_midterm: {
+scenes.c3_midterm = {
   chapter: "第三章 · 高二", title: "期中考试",
   text: function() {
     if (state.stress >= 50) {
@@ -1488,33 +1487,33 @@ c3_midterm: {
     { text: "说最近状态不好", next: "fb_c3_midterm_excuse", effects: { favor: -2, stress: 6 } },
     { text: "“老师你眯着眼睛看人的时候，很像在笑。”", next: "fb_c3_midterm_tease", effects: { favor: 10, trust: 5 } }
   ]
-},
+};
 
-fb_c3_midterm_tell: fb("第三章 · 高二", "期中考试",
+scenes.fb_c3_midterm_tell = fb("第三章 · 高二", "期中考试",
   "你说你压力大。\n\n"
   + "韩磊没有立刻接话。他把成绩单放下，眯着眼看你，很久。\n\n"
   + "窗外的雨还在下。\n\n"
   + "“我知道了。”最后他说。\n\n"
   + "“压力大的时候，来找我。”他顿了一下，“不是以班主任的身份。”\n\n"
   + "你抬头看他。他已经低下头，翻开了下一份成绩单。",
-  "c3_office"),
+  "c3_office");
 
-fb_c3_midterm_excuse: fb("第三章 · 高二", "期中考试",
+scenes.fb_c3_midterm_excuse = fb("第三章 · 高二", "期中考试",
   "你说是状态不好。\n\n"
   + "韩磊没有拆穿，只是点了点头。\n\n"
   + "“行。下次注意。”\n\n"
   + "他把成绩单推回给你。你接过来的时候，他没有松手。\n\n"
   + "你抬头看他，他正看着你。几秒之后，他松了手。",
-  "c3_office"),
+  "c3_office");
 
-fb_c3_midterm_tease: fb("第三章 · 高二", "期中考试",
+scenes.fb_c3_midterm_tease = fb("第三章 · 高二", "期中考试",
   "你说他眯着眼睛看人的时候很像在笑。\n\n"
   + "韩磊愣了一下，然后真的笑了——不是平时那种上课的笑，是那种没忍住的笑。\n\n"
   + "“你倒是会转移话题。”他说。\n\n"
   + "窗外的雨还在下。你发现他笑的时候，眼角的细纹比平时明显。",
-  "c3_office"),
+  "c3_office");
 
-c3_office: {
+scenes.c3_office = {
   chapter: "第三章 · 高二", title: "冬天，办公室",
   text: function() {
     return "一月，冬天。\n\n"
@@ -1530,33 +1529,33 @@ c3_office: {
     { text: "“……有点可爱。”", next: "fb_c3_office_cute", effects: { favor: 7, stress: 4, flag: "office_cute" } },
     { text: "沉默", next: "fb_c3_office_silent", effects: { trust: 4, flag: "office_silent" } }
   ]
-},
+};
 
-fb_c3_office_funny: fb("第三章 · 高二", "冬天，办公室",
+scenes.fb_c3_office_funny = fb("第三章 · 高二", "冬天，办公室",
   "你说他这样很搞笑。\n\n"
   + "韩磊挑了挑眉，把瓶子举起来看了看。\n\n"
   + "“习惯了。”他说，“省得洗杯子。”\n\n"
   + "你笑了。他也笑了一下，然后坐回桌前，问你哪道题不会。\n\n"
   + "你走过去，把卷子摊开。窗外有风，玻璃上的雾气轻轻晃了一下。",
-  "c3_newyear"),
+  "c3_newyear");
 
-fb_c3_office_cute: fb("第三章 · 高二", "冬天，办公室",
+scenes.fb_c3_office_cute = fb("第三章 · 高二", "冬天，办公室",
   "你说有点可爱。说完你自己也愣住了。\n\n"
   + "韩磊的手停在瓶盖上，看了你两秒。\n\n"
   + "办公室很安静，暖气片在响。\n\n"
   + "“……去问题吧。”\n\n"
   + "他低下头，耳朵有点红。你也没再说什么，走过去把卷子摊开。\n\n"
   + "你讲题的时候，他比平时更安静。",
-  "c3_newyear"),
+  "c3_newyear");
 
-fb_c3_office_silent: fb("第三章 · 高二", "冬天，办公室",
+scenes.fb_c3_office_silent = fb("第三章 · 高二", "冬天，办公室",
   "你什么都没说。\n\n"
   + "韩磊也没追问。他把瓶子放好，坐回桌前，问你哪道题不会。\n\n"
   + "你走过去，把卷子摊开。\n\n"
   + "你们都没有再提刚才的事。但你讲题的时候，他一直在看你，不是看题。",
-  "c3_newyear"),
+  "c3_newyear");
 
-c3_newyear: {
+scenes.c3_newyear = {
   chapter: "第三章 · 高二", title: "元旦",
   text: function() {
     return "元旦前，教室里贴了窗花，有人在黑板上画了新年倒计时。\n\n"
@@ -1569,32 +1568,32 @@ c3_newyear: {
     { text: "写一张贺卡，夹在糖盒里", next: "fb_c3_newyear_card", effects: { favor: 5, trust: 4, flag: "gift" } },
     { text: "什么都没说，转身走了", next: "fb_c3_newyear_silent", effects: {} }
   ]
-},
+};
 
-fb_c3_newyear_voice: fb("第三章 · 高二", "元旦",
+scenes.fb_c3_newyear_voice = fb("第三章 · 高二", "元旦",
   "你说他嗓子哑了。\n\n"
   + "韩磊拿起那盒糖看了看，然后拆开，取了一颗放进嘴里。\n\n"
   + "“谢了。”他说，“上课的时候别笑我。”\n\n"
   + "你点头。他把糖盒放进抽屉，关上。\n\n"
   + "你转身走了。走到门口的时候，你听见他轻轻咳了一声。",
-  "c3_end"),
+  "c3_end");
 
-fb_c3_newyear_card: fb("第三章 · 高二", "元旦",
+scenes.fb_c3_newyear_card = fb("第三章 · 高二", "元旦",
   "你写了一张贺卡夹在糖盒里。\n\n"
   + "韩磊发现的时候，你正在座位上收拾书包。他拿起贺卡看了很久，然后抬头看了你一眼。\n\n"
   + "你假装没看见。\n\n"
   + "下课后，你从书包里翻出课本，发现里面夹着一张纸条。\n\n"
   + "上面写着：“谢谢。少熬夜。”",
-  "c3_end"),
+  "c3_end");
 
-fb_c3_newyear_silent: fb("第三章 · 高二", "元旦",
+scenes.fb_c3_newyear_silent = fb("第三章 · 高二", "元旦",
   "你什么都没说，转身走了。\n\n"
   + "第二天上课，你看见那盒糖放在讲台上，已经拆开了。\n\n"
   + "韩磊讲课的时候，嗓子比昨天好了一点。\n\n"
   + "你没敢看他。但他讲完最后一道题，扫了一眼教室，看的是你这边。",
-  "c3_end"),
+  "c3_end");
 
-c3_end: {
+scenes.c3_end = {
   chapter: "第三章 · 高二", title: "章末",
   text: function() {
     var base = "寒假前最后一节课。\n\n"
@@ -1617,10 +1616,10 @@ c3_end: {
     return base;
   },
   choices: [{ text: "进入第四章", next: "c4_oath" }]
-},
+};
 
 // ==================== 第四章 ====================
-c4_oath: {
+scenes.c4_oath = {
   chapter: "第四章 · 高三", title: "百日誓师",
   text: function() {
     return "三月，百日誓师。\n\n"
@@ -1634,31 +1633,31 @@ c4_oath: {
     { text: "被点名", next: "fb_c4_oath_pointed", effects: { trust: 4, stress: 4 } },
     { text: "低头，假装没看见", next: "fb_c4_oath_hide", effects: {} }
   ]
-},
+};
 
-fb_c4_oath_raise: fb("第四章 · 高三", "百日誓师",
+scenes.fb_c4_oath_raise = fb("第四章 · 高三", "百日誓师",
   "你举了手。\n\n"
   + "韩磊的视线停在你身上，点了点头。\n\n"
   + "你走上台的时候，经过他身边，他低声说了一句“别紧张”。\n\n"
   + "台上风很大。你握着话筒，看着下面黑压压的人群，突然没那么怕了。\n\n"
   + "你讲完下台的时候，韩磊站在台边等你。他没说话，只是冲你点了一下头。",
-  "c4_peer_intro"),
+  "c4_peer_intro");
 
-fb_c4_oath_pointed: fb("第四章 · 高三", "百日誓师",
+scenes.fb_c4_oath_pointed = fb("第四章 · 高三", "百日誓师",
   "他点了你的名字。\n\n"
   + "你站起来的时候，全班都在看你。韩磊站在队伍前面，眯着眼，像是想通过眼神告诉你什么。\n\n"
   + "你走上台，声音有点抖，但还是讲完了。\n\n"
   + "下台的时候，你从他面前经过。他说了句“不错”，声音很轻，只有你听得见。",
-  "c4_peer_intro"),
+  "c4_peer_intro");
 
-fb_c4_oath_hide: fb("第四章 · 高三", "百日誓师",
+scenes.fb_c4_oath_hide = fb("第四章 · 高三", "百日誓师",
   "你低下了头。\n\n"
   + "韩磊的视线在你这里停了一秒，然后移开了。他点了另一个同学的名字。\n\n"
   + "你松了口气，又有点说不上来的感觉。\n\n"
   + "散会的时候，你从人群里挤过去。韩磊站在操场边，正在跟别的老师说话，没看你。",
-  "c4_peer_intro"),
+  "c4_peer_intro");
 
-c4_peer_intro: {
+scenes.c4_peer_intro = {
   chapter: "第四章 · 高三", title: "四月",
   text: function() {
     return "四月。\n\n"
@@ -1671,9 +1670,9 @@ c4_peer_intro: {
     { text: "接受陈怀敛的示好", next: "c4_peer_accept", effects: { favor: -5, stress: -6, flag: "peer" } },
     { text: "保持距离", next: "c4_peer_reject", effects: { favor: 3, stress: 3 } }
   ]
-},
+};
 
-c4_peer_accept: {
+scenes.c4_peer_accept = {
   chapter: "第四章 · 高三", title: "四月",
   text: function() {
     return "你没有拒绝陈怀敛。\n\n"
@@ -1686,9 +1685,9 @@ c4_peer_accept: {
   choices: [
     { text: "去办公室", next: "c4_han_confronts", effects: {} }
   ]
-},
+};
 
-c4_peer_reject: {
+scenes.c4_peer_reject = {
   chapter: "第四章 · 高三", title: "四月",
   text: function() {
     return "你婉拒了陈怀敛。\n\n"
@@ -1701,9 +1700,9 @@ c4_peer_reject: {
   choices: [
     { text: "继续", next: "c4_month", effects: {} }
   ]
-},
+};
 
-c4_han_confronts: {
+scenes.c4_han_confronts = {
   chapter: "第四章 · 高三", title: "办公室",
   text: function() {
     var trust = state.trust;
@@ -1735,25 +1734,25 @@ c4_han_confronts: {
     { text: "什么都没说，转身走了", next: "fb_c4_confront_silent", effects: { favor: 3, stress: 6 } },
     { text: "“老师你为什么管这个。”", next: "fb_c4_confront_ask", effects: { favor: 10, trust: 5, stress: 8 } }
   ]
-},
+};
 
-fb_c4_confront_agree: fb("第四章 · 高三", "办公室",
+scenes.fb_c4_confront_agree = fb("第四章 · 高三", "办公室",
   "你答应了。\n\n"
   + "从那天起，你和陈怀敛恢复了普通同学的关系。\n\n"
   + "陈怀敛没问为什么。他只是笑了笑，说“高三加油”。\n\n"
   + "你点头。转身的时候，你看见办公室的灯还亮着。\n\n"
   + "你没敢多看。",
-  "c4_month"),
+  "c4_month");
 
-fb_c4_confront_silent: fb("第四章 · 高三", "办公室",
+scenes.fb_c4_confront_silent = fb("第四章 · 高三", "办公室",
   "你什么都没说。\n\n"
   + "转身走了。走到门口的时候，你听见他在你身后说了一句什么。\n\n"
   + "你没听清。也没有回头。\n\n"
   + "走廊里很安静，只有你一个人的脚步声。\n\n"
   + "那天晚上你在书桌前坐了很久，一道题都没做出来。",
-  "c4_month"),
+  "c4_month");
 
-fb_c4_confront_ask: fb("第四章 · 高三", "办公室",
+scenes.fb_c4_confront_ask = fb("第四章 · 高三", "办公室",
   "你问他为什么管这个。\n\n"
   + "韩磊没有立刻回答。\n\n"
   + "他放下手里的杯子，看了你很久。\n\n"
@@ -1763,9 +1762,9 @@ fb_c4_confront_ask: fb("第四章 · 高三", "办公室",
   + "办公室很安静。窗外的风把树叶吹得沙沙响。\n\n"
   + "最后他说：“回去上课。”\n\n"
   + "你转身走了。你没看见他在你转身之后，抬手揉了揉眼睛。",
-  "c4_month"),
+  "c4_month");
 
-c4_month: {
+scenes.c4_month = {
   chapter: "第四章 · 高三", title: "高考前最后一个月",
   text: function() {
     return "五月，教室里的倒计时牌每天都在变。\n\n"
@@ -1781,16 +1780,16 @@ c4_month: {
     { text: "课后找他", next: "fb_c4_month_talk", effects: { favor: 7, stress: -6 } },
     { text: "把纸条收起来，什么都没做", next: "fb_c4_month_quiet", effects: { favor: 3, stress: 2 } }
   ]
-},
+};
 
-fb_c4_month_study: fb("第四章 · 高三", "高考前最后一个月",
+scenes.fb_c4_month_study = fb("第四章 · 高三", "高考前最后一个月",
   "你埋头做题。\n\n"
   + "晚自习的教室很安静，只有笔尖划纸的声音。韩磊在教室里转了一圈又一圈，路过你的时候，你感觉到他的脚步慢了一下。\n\n"
   + "他没有停下来。\n\n"
   + "你把那张纸条夹进了课本里。",
-  "c4_photo"),
+  "c4_photo");
 
-fb_c4_month_talk: fb("第四章 · 高三", "高考前最后一个月",
+scenes.fb_c4_month_talk = fb("第四章 · 高三", "高考前最后一个月",
   "你去找他谈心。\n\n"
   + "韩磊把你带到走廊尽头的窗户边，那里没人。你们并肩站着，看着外面的夜空。\n\n"
   + "“怕什么？”他问。\n\n"
@@ -1798,17 +1797,17 @@ fb_c4_month_talk: fb("第四章 · 高三", "高考前最后一个月",
   + "他沉默了一会儿。\n\n"
   + "“考不好也没关系。”他说。\n\n"
   + "你转头看他。他没有看你，只是看着窗外。",
-  "c4_photo"),
+  "c4_photo");
 
-fb_c4_month_quiet: fb("第四章 · 高三", "高考前最后一个月",
+scenes.fb_c4_month_quiet = fb("第四章 · 高三", "高考前最后一个月",
   "你把纸条收进了笔记本夹层。\n\n"
   + "那一晚你没有去找他。你只是一直做题，做完一张又一张。\n\n"
   + "晚自习结束的时候，你起身收拾书包，发现讲台上还亮着一盏灯。\n\n"
   + "韩磊坐在那里，低头批卷子，没注意到你。\n\n"
   + "你站了两秒，走了。",
-  "c4_photo"),
+  "c4_photo");
 
-c4_photo: {
+scenes.c4_photo = {
   chapter: "第四章 · 高三", title: "毕业照 · 集体",
   text: function() {
     return "六月，拍毕业照。\n\n"
@@ -1822,9 +1821,9 @@ c4_photo: {
     { text: "站到他旁边", next: "c4_photo_beside", effects: { favor: 7, flag: "photo_beside" } },
     { text: "站到远处", next: "c4_photo_far", effects: { flag: "photo_far" } }
   ]
-},
+};
 
-c4_photo_beside: {
+scenes.c4_photo_beside = {
   chapter: "第四章 · 高三", title: "毕业照 · 集体",
   text: function() {
     return "你走到他旁边站定。\n\n"
@@ -1837,9 +1836,9 @@ c4_photo_beside: {
   choices: [
     { text: "继续", next: "c4_photo_after", isContinue: true }
   ]
-},
+};
 
-c4_photo_far: {
+scenes.c4_photo_far = {
   chapter: "第四章 · 高三", title: "毕业照 · 集体",
   text: function() {
     return "你站在了队伍边上。\n\n"
@@ -1854,9 +1853,9 @@ c4_photo_far: {
   choices: [
     { text: "继续", next: "c4_photo_after", isContinue: true }
   ]
-},
+};
 
-c4_photo_after: {
+scenes.c4_photo_after = {
   chapter: "第四章 · 高三", title: "毕业照 · 要不要单独拍",
   text: function() {
     var base = "你站在操场上。\n\n"
@@ -1874,9 +1873,9 @@ c4_photo_after: {
     { text: "走过去，问他能不能单独合影", next: "fb_c4_photo_alone_yes", effects: { favor: 8, trust: 6, flag: "photo_alone" } },
     { text: "算了，转身离开", next: "fb_c4_photo_alone_no", effects: {} }
   ]
-},
+};
 
-fb_c4_photo_alone_yes: fb("第四章 · 高三", "毕业照 · 单独合影",
+scenes.fb_c4_photo_alone_yes = fb("第四章 · 高三", "毕业照 · 单独合影",
   "你走过去。\n\n"
   + "韩磊看着你走近，没说话。\n\n"
   + "“老师。”你说，“能拍一张吗。”\n\n"
@@ -1887,9 +1886,9 @@ fb_c4_photo_alone_yes: fb("第四章 · 高三", "毕业照 · 单独合影",
   + "拍完之后他退开半步，像是什么都没发生。\n\n"
   + "“早点回去休息。”他说完转身走了。\n\n"
   + "你站在原地，看着手机里的照片。他眯着眼，笑了一下。",
-  "c4_night"),
+  "c4_night");
 
-fb_c4_photo_alone_no: fb("第四章 · 高三", "毕业照 · 单独合影",
+scenes.fb_c4_photo_alone_no = fb("第四章 · 高三", "毕业照 · 单独合影",
   "你没走过去。\n\n"
   + "你站在原地，看着他拐进教学楼。\n\n"
   + "有同学过来拉你去合影，你跟着走了。\n\n"
@@ -1898,9 +1897,9 @@ fb_c4_photo_alone_no: fb("第四章 · 高三", "毕业照 · 单独合影",
   + "也许他是在等你。\n\n"
   + "也许不是。\n\n"
   + "你把手机放在桌上，没有再看。",
-  "c4_night"),
+  "c4_night");
 
-c4_night: {
+scenes.c4_night = {
   chapter: "第四章 · 高三", title: "高考前一晚",
   text: function() {
     var base = "六月六日，高考前一晚。\n\n"
@@ -1930,38 +1929,38 @@ c4_night: {
     { text: "打电话过去", next: "fb_c4_night_call", effects: { favor: 7, stress: -6 } },
     { text: "不回复", next: "fb_c4_night_none", effects: {} }
   ]
-},
+};
 
-fb_c4_night_thanks: fb("第四章 · 高三", "高考前一晚",
+scenes.fb_c4_night_thanks = fb("第四章 · 高三", "高考前一晚",
   "你回了“谢谢”。\n\n"
   + "他很快回了一个“嗯”。\n\n"
   + "你盯着屏幕看了一会儿，放下手机。窗外很安静。\n\n"
   + "你把复习资料合上，关灯，躺下。闭眼之前，你又看了一眼手机。屏幕已经暗了。",
-  "c4_grad"),
+  "c4_grad");
 
-fb_c4_night_same: fb("第四章 · 高三", "高考前一晚",
+scenes.fb_c4_night_same = fb("第四章 · 高三", "高考前一晚",
   "你回了“你也是”。\n\n"
   + "他没有再回。\n\n"
   + "你把手机扣在桌上，闭上眼。过了很久，你又拿起来看了一眼，屏幕暗着。\n\n"
   + "你把手机放回桌上，翻身背对着它。",
-  "c4_grad"),
+  "c4_grad");
 
-fb_c4_night_call: fb("第四章 · 高三", "高考前一晚",
+scenes.fb_c4_night_call = fb("第四章 · 高三", "高考前一晚",
   "你拨了过去。\n\n"
   + "响了两声他就接了。电话那头很安静，你听见他轻轻地“喂”了一声。\n\n"
   + "你们没有说太多，只是互相说了句“加油”。\n\n"
   + "挂了电话之后，你发现自己的心跳得很快。\n\n"
   + "你把手机放在枕边，闭上眼。这一次你很快就睡着了。",
-  "c4_grad"),
+  "c4_grad");
 
-fb_c4_night_none: fb("第四章 · 高三", "高考前一晚",
+scenes.fb_c4_night_none = fb("第四章 · 高三", "高考前一晚",
   "你没有回复。\n\n"
   + "你把手机放下，继续看书。但那一晚，你看了很多遍手机屏幕，确认它真的没有亮。\n\n"
   + "半夜的时候，你忍不住打开消息，看到他发的那句“早点睡”。\n\n"
   + "你盯着看了很久，最后把手机翻过去，扣在桌上。",
-  "c4_grad"),
+  "c4_grad");
 
-c4_grad: {
+scenes.c4_grad = {
   chapter: "第四章 · 高三", title: "毕业典礼",
   text: function() {
     return "六月，毕业典礼。\n\n"
@@ -1975,51 +1974,51 @@ c4_grad: {
     { text: "约定以后再见", next: "fb_c4_grad_promise", effects: { trust: 8, flag: "promise" } },
     { text: "默默离开", next: "fb_c4_grad_leave", effects: {} }
   ]
-},
+};
 
-fb_c4_grad_confess: fb("第四章 · 高三", "毕业典礼",
+scenes.fb_c4_grad_confess = fb("第四章 · 高三", "毕业典礼",
   "你走过去。\n\n"
   + "韩磊看着你，眯着眼睛。你说了。说完之后你们都没有动。\n\n"
   + "风从校门口吹过来，带着夏天的味道。远处还有学生在拍照，笑声一阵一阵。\n\n"
   + "他沉默了很久。\n\n"
   + "“我知道了。”他说。\n\n"
   + "你没有再说什么，转身走了。走了几步，你听见他在你身后说：“路上小心。”",
-  "ending"),
+  "ending");
 
-fb_c4_grad_promise: fb("第四章 · 高三", "毕业典礼",
+scenes.fb_c4_grad_promise = fb("第四章 · 高三", "毕业典礼",
   "你说以后再见。\n\n"
   + "韩磊点了点头。\n\n"
   + "“好。”他说，“以后再见。”\n\n"
   + "你们都没有说明白那个“以后”是什么意思。\n\n"
   + "你转身走了。走到路口的时候，你回头看了一眼——他还站在校门口。",
-  "ending"),
+  "ending");
 
-fb_c4_grad_leave: fb("第四章 · 高三", "毕业典礼",
+scenes.fb_c4_grad_leave = fb("第四章 · 高三", "毕业典礼",
   "你转身走了。\n\n"
   + "走出几步，你回头看了一眼——他还站在原地。\n\n"
   + "你继续往前走，没有回头。\n\n"
   + "路灯把你的影子拉得很长。你走到路口，红灯亮了，你停下来等。风从背后吹过来，你才发现自己有点想哭。",
-  "ending"),
+  "ending");
 
 // ==================== 结局分发 ====================
-ending: {
+scenes.ending = {
   chapter: "", title: "",
   text: function() { return ""; },
   choices: [],
   resolve: function() {
-    var  = state;
-    if (.stress >= 55 && !.flags.yetan) return "ending_breakdown";
-    if (.favor >= 90 && .study < 30) return "ending_deflect";
+    var s = state;
+    if (s.stress >= 55 && !s.flags.yetan) return "ending_breakdown";
+    if (s.favor >= 90 && s.study < 30) return "ending_deflect";
     var unlocked = getUnlockedEndings();
-    if (unlocked["ending_he"] && .favor >= 80 && .trust >= 50 && .study >= 40 && .flags.confess) return "ending_hidden";
-    if (.favor >= 60 && .trust >= 50 && .study >= 35 && (.flags.confess || .flags.promise)) return "ending_he";
-    if (.favor >= 45 && .trust >= 35 && .study >= 30) return "ending_ne";
-    if (.favor < 30 || .trust < 30) return "ending_be";
+    if (unlocked["ending_he"] && s.favor >= 80 && s.trust >= 50 && s.study >= 40 && s.flags.confess) return "ending_hidden";
+    if (s.favor >= 60 && s.trust >= 50 && s.study >= 35 && (s.flags.confess || s.flags.promise)) return "ending_he";
+    if (s.favor >= 45 && s.trust >= 35 && s.study >= 30) return "ending_ne";
+    if (s.favor < 30 || s.trust < 30) return "ending_be";
     return "ending_ne";
   }
-},
+};
 
-ending_he: {
+scenes.ending_he = {
   chapter: "结局", title: "同频共振",
   text: function() {
     return "一月，寒假。\n\n"
@@ -2041,9 +2040,9 @@ ending_he: {
       + "但你没走。";
   },
   choices: [{ text: "继续", next: "epilogue_he", isContinue: true }]
-},
+};
 
-epilogue_he: {
+scenes.epilogue_he = {
   chapter: "尾声", title: "一年后",
   text: function() {
     return "一年后。\n\n"
@@ -2068,9 +2067,9 @@ epilogue_he: {
       + "算了。不用回答了。";
   },
   choices: [{ text: "回到主菜单", next: "goto_menu" }]
-},
+};
 
-ending_ne: {
+scenes.ending_ne = {
   chapter: "结局", title: "良师益友",
   text: function() {
     return "你考上了大学。\n\n"
@@ -2082,9 +2081,9 @@ ending_ne: {
       + "没有更多了。但也没有更少。";
   },
   choices: [{ text: "回到主菜单", next: "goto_menu" }]
-},
+};
 
-ending_be: {
+scenes.ending_be = {
   chapter: "结局", title: "失焦",
   text: function() {
     return "毕业后，你们再无联系。\n\n"
@@ -2093,9 +2092,9 @@ ending_be: {
       + "和他那瓶永远装着白开水的茶。";
   },
   choices: [{ text: "回到主菜单", next: "goto_menu" }]
-},
+};
 
-ending_deflect: {
+scenes.ending_deflect = {
   chapter: "结局", title: "偏折光",
   text: function() {
     return "高考失利。你选择复读。\n\n"
@@ -2119,9 +2118,9 @@ ending_deflect: {
       + "但你看见他的耳朵红了。";
   },
   choices: [{ text: "回到主菜单", next: "goto_menu" }]
-},
+};
 
-ending_hidden: {
+scenes.ending_hidden = {
   chapter: "隐藏结局", title: "薛定谔的猫",
   text: function() {
     return "毕业那晚，你走出校门。\n\n"
@@ -2134,9 +2133,9 @@ ending_hidden: {
       + "“我已经等三年了。”";
   },
   choices: [{ text: "回到主菜单", next: "goto_menu" }]
-},
+};
 
-ending_breakdown: {
+scenes.ending_breakdown = {
   chapter: "结局", title: "临界崩溃",
   text: function() {
     return "你没能撑到高考。\n\n"
@@ -2147,9 +2146,9 @@ ending_breakdown: {
       + "但那个盒子，已经关上了。";
   },
   choices: [{ text: "回到主菜单", next: "goto_menu" }]
-},
+};
 
-goto_menu: {
+scenes.goto_menu = {
   chapter: "", title: "",
   text: function() { return ""; },
   choices: [],
@@ -2160,17 +2159,14 @@ goto_menu: {
     refreshMenu();
     return "__halt__";
   }
-}
-
 };
-
 // ==================================================
 // 打字机（requestAnimationFrame 版）
 // ==================================================
 var typingRAF = null;
 var typingText = "";
 var typingStartTime = 0;
-var TYPING_SPEED = 22; // 每字符毫秒
+var TYPING_SPEED = 22;
 
 function stopTyping() {
   if (typingRAF) {
@@ -2406,15 +2402,15 @@ function initMenuSymbols() {
   for (var k = 0; k < old.length; k++) old[k].remove();
   var symbols = ["∫", "∂", "π", "Δ", "Σ", "λ", "θ", "μ"];
   for (var i = 0; i < 8; i++) {
-    var  = document.createElement("div");
-    .className = "menu-symbol";
-    .textContent = symbols[i];
-    .style.left = (Math.random() * 80 + 10) + "%";
-    .style.top = (Math.random() * 80 + 10) + "%";
-    .style.fontSize = (Math.random() * 20 + 14) + "px";
-    .style.animationDuration = (Math.random() * 15 + 15) + "s";
-    .style.animationDelay = (-Math.random() * 20) + "s";
-    card.appendChild();
+    var s = document.createElement("div");
+    s.className = "menu-symbol";
+    s.textContent = symbols[i];
+    s.style.left = (Math.random() * 80 + 10) + "%";
+    s.style.top = (Math.random() * 80 + 10) + "%";
+    s.style.fontSize = (Math.random() * 20 + 14) + "px";
+    s.style.animationDuration = (Math.random() * 15 + 15) + "s";
+    s.style.animationDelay = (-Math.random() * 20) + "s";
+    card.appendChild(s);
   }
 }
 
